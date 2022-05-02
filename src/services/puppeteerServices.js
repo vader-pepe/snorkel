@@ -27,12 +27,9 @@ async function GetProperty(element, property) {
     return await (await element.getProperty(property)).jsonValue();
 }
 
-export const postToFacebook = async (user = process.env.FB_USER, pass = process.env.FB_PASS, photo) => {
-    const browser = await puppeteer.launch({ userDataDir: "./userDataDir", });
+export const postToFacebook = async (page, user = process.env.FB_USER, pass = process.env.FB_PASS, photo) => {
 
     try {
-        const page = await browser.newPage();
-
         await page.emulate(iPhone);
         await page.goto("https://www.facebook.com/");
         await page.screenshot({ path: "./facebook/1.png" })
@@ -54,7 +51,8 @@ export const postToFacebook = async (user = process.env.FB_USER, pass = process.
             await page.screenshot({ path: "./facebook/2.png" })
             // click Log In button
             await Promise.all([page.click("button"), page.waitForNavigation({
-                waitUntil: 'networkidle0',
+                waitUntil: 'networkidle2',
+                timeout: 0
             })])
 
             // check if you logged in or not
@@ -118,22 +116,18 @@ export const postToFacebook = async (user = process.env.FB_USER, pass = process.
         }
     } catch (error) {
         throw Boom.badRequest(error);
-    } finally {
-        await browser.close();
     }
 };
 
 
-export const getTwitImg = async (twitURL) => {
+export const getTwitImg = async (page, twitURL) => {
     // https://twitter.com/txtdarigajelas/status/1520431822735257600
     const tweetId = twitURL.split("/")[5];
     // https://kizie.co/tools/twitter-image
-    const browser = await puppeteer.launch({ userDataDir: "./userDataDir", });
 
     try {
-        const page = await browser.newPage();
 
-        await page.goto(`https://kizie.co/tools/twitter-image?tweet_id=${tweetId}`);
+        await page.goto(`https://kizie.co/tools/twitter-image`);
 
         // wait for the page to load
         await page.waitForSelector("input");
@@ -180,16 +174,12 @@ export const getTwitImg = async (twitURL) => {
         return `kizie-${tweetId}.png`;
     } catch (error) {
         throw Boom.badRequest(error);
-    } finally {
-        await browser.close();
     }
 };
 
-export const postToInstagram = async (user = process.env.IG_USER, pass = process.env.IG_PASS, photo, caption = "Sent from API") => {
-    const browser = await puppeteer.launch({ userDataDir: "./userDataDir", });
+export const postToInstagram = async (page, user = process.env.IG_USER, pass = process.env.IG_PASS, photo, caption = "Sent from API") => {
 
     try {
-        const page = await browser.newPage();
 
         await page.emulate(iPhone);
         await page.goto("https://www.instagram.com/");
@@ -234,7 +224,8 @@ export const postToInstagram = async (user = process.env.IG_USER, pass = process
             await delay(500)
             await page.screenshot({ path: "./instagram/4.png" })
             await Promise.all([page.click("button[type='submit']"), page.waitForNavigation({
-                waitUntil: 'networkidle0',
+                waitUntil: 'networkidle2',
+                timeout: 0
             })])
             await page.click("button")
             await delay(3000)
@@ -288,7 +279,5 @@ export const postToInstagram = async (user = process.env.IG_USER, pass = process
 
     } catch (error) {
         throw Boom.badRequest(error);
-    } finally {
-        await browser.close();
     }
 };

@@ -1,6 +1,7 @@
+/* eslint-disable no-return-await */
 import HttpStatus from 'http-status-codes';
 import { getTwitImg, postToFacebook, postToInstagram } from '../services/puppeteerServices';
-
+import { Cluster } from "puppeteer-cluster";
 
 /**
  * Get all users.
@@ -11,19 +12,41 @@ import { getTwitImg, postToFacebook, postToInstagram } from '../services/puppete
  */
 // eslint-disable-next-line require-await
 export const fromTwitter = async (req, res, next) => {
+    req.setTimeout(300000);
+    const cluster = await Cluster.launch({
+        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        maxConcurrency: 1,
+        puppeteerOptions: {
+            userDataDir: './userDataDir'
+        },
+        monitor: true,
+        timeout: 300000,
+    });
+
+    // define your task (in this example we extract the title of the given page)
+    await cluster.task(async ({ page, data }) => {
+        const img = await getTwitImg(page, data.link);
+
+        await postToFacebook(page, process.env.FB_USER, process.env.FB_PASS, img);
+
+        await postToInstagram(page, process.env.IG_USER, process.env.IG_PASS, img, data.caption);
+
+    });
+
     // eslint-disable-next-line no-console
     console.log('Queued. Thank you!');
-    res.status(HttpStatus.ACCEPTED).send({ message: "Queued. Thank you!" });
     try {
         // eslint-disable-next-line no-console
         const data = req.body;
 
-        const img = await getTwitImg(data.link);
+        await cluster.execute(data);
 
-        await postToFacebook(process.env.FB_USER, process.env.FB_PASS, img);
+        res.status(HttpStatus.ACCEPTED).send({ message: "Queued. Thank you!" });
 
-        await postToInstagram(process.env.IG_USER, process.env.IG_PASS, img, data.caption);
     } catch (error) {
         next(error);
+    } finally {
+        await cluster.idle();
+        await cluster.close();
     }
 }
