@@ -35,13 +35,12 @@ export const fromTwitter = async (req, res, next) => {
 
     // eslint-disable-next-line no-console
     console.log('Queued. Thank you!');
+    res.status(HttpStatus.ACCEPTED).send({ message: "Queued. Thank you!" });
     try {
         // eslint-disable-next-line no-console
         const data = req.body;
 
         await cluster.execute(data);
-
-        res.status(HttpStatus.ACCEPTED).send({ message: "Queued. Thank you!" });
 
     } catch (error) {
         next(error);

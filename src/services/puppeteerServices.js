@@ -104,10 +104,24 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
             if (page.url() === "https://m.facebook.com/?soft=composer") {
                 await page.screenshot({ path: "./facebook/6.png" })
                 await page.click("#structured_composer_form > div > div > button:nth-child(1)")
-                const upload = await page.$("#photo_input")
+                // const upload = await page.$("#photo_input")
 
-                // your file here
-                await upload.uploadFile(`./twitter/${photo}`)
+                // // your file here
+                // await upload.uploadFile(`./twitter/${photo}`)
+                // start posting
+                const [fileChooser] = await Promise.all([
+                    page.waitForFileChooser(),
+                    page.evaluate(() => {
+                        // eslint-disable-next-line no-undef
+                        const uploadBtn = document.querySelector("#structured_composer_form > div > div > button:nth-child(1) > div");
+
+                        uploadBtn.click();
+                    }), // some button that triggers file selection
+                ]);
+
+                // image to upload here
+                await fileChooser.accept([`./twitter/${photo}`]);
+
                 await page.click("#composer-main-view-id > div > div > div > button")
                 await delay(10000)
             }
@@ -118,7 +132,6 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
         throw Boom.badRequest(error);
     }
 };
-
 
 export const getTwitImg = async (page, twitURL) => {
     // https://twitter.com/txtdarigajelas/status/1520431822735257600
