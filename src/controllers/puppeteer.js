@@ -2,6 +2,9 @@
 import HttpStatus from 'http-status-codes';
 import { getTwitImg, postToFacebook, postToInstagram } from '../services/puppeteerServices';
 import { Cluster } from "puppeteer-cluster";
+import path from 'path';
+
+const userDir = path.resolve('./userDataDir')
 
 /**
  * Get all users.
@@ -17,7 +20,7 @@ export const fromTwitter = async (req, res, next) => {
         concurrency: Cluster.CONCURRENCY_CONTEXT,
         maxConcurrency: 1,
         puppeteerOptions: {
-            userDataDir: './userDataDir'
+            userDataDir: userDir,
         },
         monitor: true,
         timeout: 300000,
@@ -35,12 +38,13 @@ export const fromTwitter = async (req, res, next) => {
 
     // eslint-disable-next-line no-console
     console.log('Queued. Thank you!');
-    res.status(HttpStatus.ACCEPTED).send({ message: "Queued. Thank you!" });
     try {
         // eslint-disable-next-line no-console
         const data = req.body;
 
         await cluster.execute(data);
+
+        res.status(HttpStatus.ACCEPTED).send({ message: "Queued. Thank you!" });
 
     } catch (error) {
         next(error);

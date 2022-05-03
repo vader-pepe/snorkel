@@ -1,7 +1,10 @@
 import Boom from '@hapi/boom';
-const puppeteer = require("puppeteer");
-const path = require('path');
-const downloadPath = path.resolve('./twitter');
+import puppeteer from 'puppeteer'
+import path from 'path';
+
+const twitterPath = path.resolve('./twitter');
+const instagramPath = path.resolve('./instagram');
+const facebookPath = path.resolve('./facebook');
 
 const iPhone = puppeteer.devices['iPhone SE'];
 
@@ -32,8 +35,9 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
     try {
         await page.emulate(iPhone);
         await page.goto("https://www.facebook.com/");
-        await page.screenshot({ path: "./facebook/1.png" })
-        const isNotLoggedIn = await page.$("input[type=email]")
+        await page.screenshot({ path: `${facebookPath}/1.png` })
+        await page.waitForSelector("#m_login_email");
+        const isNotLoggedIn = await page.$("#m_login_email")
         let saved = false;
         let loggedIn = true;
         const chooseAccEle = await page.$("div > p");
@@ -48,7 +52,7 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
             loggedIn = false;
             await page.type("#m_login_email", user) // login field
             await page.type("#m_login_password", pass) // password field
-            await page.screenshot({ path: "./facebook/2.png" })
+            await page.screenshot({ path: `${facebookPath}/2.png` })
             // click Log In button
             await Promise.all([page.click("button"), page.waitForNavigation({
                 waitUntil: 'networkidle2',
@@ -62,7 +66,7 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
             const notNowEle = await page.$("a > span");
             const notNow = await GetProperty(notNowEle, "textContent");
 
-            await page.screenshot({ path: "./facebook/4.png" })
+            await page.screenshot({ path: facebookPath + "/4.png" })
 
             if (notNow === "Not Now") {
                 await page.click("a")
@@ -72,21 +76,21 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
         }
 
         if (saved) {
-            await page.screenshot({ path: "./facebook/1a.png" })
+            await page.screenshot({ path: facebookPath + "/1a.png" })
             await Promise.all([
                 page.click("#root > div:nth-child(2) > div > div > div > div > div"),
                 page.waitForNavigation()
             ])
             // passowrd
-            await page.type("input[type='password']", `*******`)
-            await page.screenshot({ path: "./facebook/2a.png" })
+            await page.type("input[type='password']", user)
+            await page.screenshot({ path: facebookPath + "/2a.png" })
             await Promise.all([
                 page.click("button[type='submit']"),
                 page.waitForNavigation(),
 
             ])
             await page.click("a > span");
-            await page.screenshot({ path: "./facebook/3a.png" })
+            await page.screenshot({ path: facebookPath + "/3a.png" })
         }
         if (loggedIn) {
 
@@ -98,11 +102,11 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
 
                 postField.click();
             })
-            await page.screenshot({ path: "./facebook/5.png" })
+            await page.screenshot({ path: facebookPath + "/5.png" })
             await delay(1000)
             // the url will changed. after that, you can upload anything
             if (page.url() === "https://m.facebook.com/?soft=composer") {
-                await page.screenshot({ path: "./facebook/6.png" })
+                await page.screenshot({ path: facebookPath + "/6.png" })
                 await page.click("#structured_composer_form > div > div > button:nth-child(1)")
                 // const upload = await page.$("#photo_input")
 
@@ -120,13 +124,13 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
                 ]);
 
                 // image to upload here
-                await fileChooser.accept([`./twitter/${photo}`]);
+                await fileChooser.accept([`${twitterPath}/${photo}`]);
 
                 await page.click("#composer-main-view-id > div > div > div > button")
                 await delay(10000)
             }
             // last screenshot
-            await page.screenshot({ path: "./facebook/7.png" })
+            await page.screenshot({ path: facebookPath + "/7.png" })
         }
     } catch (error) {
         throw Boom.badRequest(error);
@@ -156,7 +160,7 @@ export const getTwitImg = async (page, twitURL) => {
 
         await page._client.send('Page.setDownloadBehavior', {
             behavior: 'allow',
-            downloadPath: downloadPath
+            downloadPath: twitterPath
         });
 
         await page.evaluate(() => {
@@ -182,7 +186,7 @@ export const getTwitImg = async (page, twitURL) => {
 
         await delay(5000);
         // screenshot
-        await page.screenshot({ path: `./twitter/kizie.png`, fullPage: true });
+        await page.screenshot({ path: twitterPath + '/kizie.png', fullPage: true });
 
         return `kizie-${tweetId}.png`;
     } catch (error) {
@@ -197,7 +201,7 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
         await page.emulate(iPhone);
         await page.goto("https://www.instagram.com/");
         await delay(3000);
-        await page.screenshot({ path: "./instagram/1.png" })
+        await page.screenshot({ path: instagramPath + "/1.png" })
         const findAllBtns = await page.$$eval("button", (elements) => elements.map((v) => v.textContent))
         const isNotLoggedIn = findAllBtns.find(v => v === "Log In")
         let loggedIn = true;
@@ -205,7 +209,7 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
         if (isNotLoggedIn) {
             loggedIn = false;
 
-            await page.screenshot({ path: "./instagram/2.png" })
+            await page.screenshot({ path: instagramPath + "/2.png" })
             await page.evaluate(() => {
                 // eslint-disable-next-line no-undef
                 const loginBtn = Array.from(document.querySelectorAll('button'))
@@ -232,17 +236,17 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
             // login directly with username and password
             await page.type("input[name='username']", user) // login field
             await page.type("input[name='password']", pass) // password field
-            await page.screenshot({ path: "./instagram/3.png" })
+            await page.screenshot({ path: instagramPath + "/3.png" })
             // click Log In button
             await delay(500)
-            await page.screenshot({ path: "./instagram/4.png" })
+            await page.screenshot({ path: instagramPath + "/4.png" })
             await Promise.all([page.click("button[type='submit']"), page.waitForNavigation({
                 waitUntil: 'networkidle2',
                 timeout: 0
             })])
             await page.click("button")
             await delay(3000)
-            await page.screenshot({ path: "./instagram/5.png" })
+            await page.screenshot({ path: instagramPath + "/5.png" })
 
             loggedIn = true;
         }
@@ -260,11 +264,11 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
             ]);
 
             // image to upload here
-            await fileChooser.accept([`./twitter/${photo}`]);
+            await fileChooser.accept([`${twitterPath}/${photo}`]);
             await delay(500)
-            await page.screenshot({ path: "./instagram/6.png" })
+            await page.screenshot({ path: instagramPath + "/6.png" })
             if (page.url() === "https://www.instagram.com/create/style/") {
-                await page.screenshot({ path: "./instagram/7.png" })
+                await page.screenshot({ path: instagramPath + "/7.png" })
                 await page.evaluate(() => {
                     // eslint-disable-next-line no-undef
                     const nextBtn = Array.from(document.querySelectorAll('button'))
@@ -276,7 +280,7 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
             }
             if (page.url() === "https://www.instagram.com/create/details/") {
                 // caption here
-                await page.screenshot({ path: "./instagram/8.png" })
+                await page.screenshot({ path: instagramPath + "/8.png" })
                 await page.type("textarea", caption)
                 await page.evaluate(() => {
                     // eslint-disable-next-line no-undef
@@ -287,7 +291,7 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
                 })
                 await delay(10000)
             }
-            await page.screenshot({ path: "./instagram/9.png" })
+            await page.screenshot({ path: instagramPath + "/9.png" })
         }
 
     } catch (error) {

@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === 'test') {
  */
 module.exports = {
   connection,
-  client: process.env.DB_CLIENT,
+  client: "mysql2",
   migrations: {
     tableName: 'migrations',
     directory: './migrations',
