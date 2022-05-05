@@ -40,11 +40,22 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
         const isNotLoggedIn = await page.$("#m_login_email")
         let saved = false;
         let loggedIn = true;
+        let detectedForeignIp = false;
         const chooseAccEle = await page.$("div > p");
         let chooseAcc = "";
 
         if (chooseAccEle) {
             chooseAcc = await GetProperty(chooseAccEle, "textContent");
+        }
+
+        const loginAppr = await page.$("#checkpoint_title");
+
+        if (loginAppr) {
+            detectedForeignIp = true;
+        }
+
+        if (detectedForeignIp) {
+            throw new Error("Detected foreign IP");
         }
 
         if (chooseAcc === "Choose your account") saved = true;
@@ -197,6 +208,7 @@ export const getTwitImg = async (page, twitURL) => {
 export const postToInstagram = async (page, user = process.env.IG_USER, pass = process.env.IG_PASS, photo, caption = "Sent from API") => {
 
     try {
+        let foreignIP = false;
 
         await page.emulate(iPhone);
         await page.goto("https://www.instagram.com/");
@@ -205,6 +217,14 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
         const findAllBtns = await page.$$eval("button", (elements) => elements.map((v) => v.textContent))
         const isNotLoggedIn = findAllBtns.find(v => v === "Log In")
         let loggedIn = true;
+
+        const foreignIPEle = await page.$("html > body > div > section > div > div > div > h2");
+
+        if (GetProperty(foreignIPEle, "textContent") === "We Detected An Unusual Login Attempt") foreignIP = true;
+
+        if (foreignIP) {
+            throw new Error("Detected foreign IP")
+        }
 
         if (isNotLoggedIn) {
             loggedIn = false;
