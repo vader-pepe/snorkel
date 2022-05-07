@@ -58,6 +58,7 @@
     "morgan": "^1.10.0",
     "mysql2": "^2.3.3",
     "pg": "^8.7.1",
+    "prompt-sync": "^4.2.0",
     "puppeteer": "^13.7.0",
     "puppeteer-cluster": "^0.23.0",
     "serve-favicon": "^2.5.0",
