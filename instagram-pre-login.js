@@ -69,9 +69,38 @@ const login = async () => {
                 waitUntil: 'networkidle2',
                 timeout: 0
             })])
-            await page.click("button")
-            await delay(3000)
+            await Promise.all([
+                page.evaluate(() => {
+                    // eslint-disable-next-line no-undef
+                    const x = Array.from(document.querySelectorAll("button"));
+
+                    x.map(v => {
+                        if (v.textContent === "Send Security Code") {
+                            v.click();
+                        }
+                    })
+                }),
+                page.waitForNavigation({
+                    waitUntil: "networkidle2"
+                })
+            ])
             await page.screenshot({ path: instagramPath + "/5.png" })
+            const code = prompt("Code: ")
+
+            await page.type("#security_code", code);
+            await page.screenshot({ path: instagramPath + "/6.png" })
+
+            await page.evaluate(() => {
+                // eslint-disable-next-line no-undef
+                const x = Array.from(document.querySelectorAll("button"))
+
+                x.map(v => {
+                    if (v.textContent === "Submit") {
+                        v.click();
+                    }
+                })
+            })
+            await page.screenshot({ path: instagramPath + "/7.png" })
 
         }
 
