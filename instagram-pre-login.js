@@ -17,18 +17,6 @@ function delay(time) {
     return new Promise(resolve => setTimeout(resolve, time));
 }
 
-/**
- * Get the value of designated HTML Element.
- * 
- * @param {Element} element
- * @param {Element} property
- * @returns {Promise}
- */
-async function GetProperty(element, property) {
-    // eslint-disable-next-line no-return-await
-    return await (await element.getProperty(property)).jsonValue();
-}
-
 const login = async () => {
     try {
         const user = prompt('username: ');
@@ -65,25 +53,19 @@ const login = async () => {
             // click Log In button
             await delay(500)
             await page.screenshot({ path: instagramPath + "/4.png" })
-            await Promise.all([page.click("button[type='submit']"), page.waitForNavigation({
-                waitUntil: 'networkidle2',
-                timeout: 0
-            })])
-            await Promise.all([
-                page.evaluate(() => {
-                    // eslint-disable-next-line no-undef
-                    const x = Array.from(document.querySelectorAll("button"));
+            await page.click("button[type='submit']")
+            await delay(5000);
+            await page.evaluate(() => {
+                // eslint-disable-next-line no-undef
+                const x = Array.from(document.querySelectorAll("button"));
 
-                    x.map(v => {
-                        if (v.textContent === "Send Security Code") {
-                            v.click();
-                        }
-                    })
-                }),
-                page.waitForNavigation({
-                    waitUntil: "networkidle2"
+                x.map(v => {
+                    if (v.textContent === "Send Security Code") {
+                        v.click();
+                    }
                 })
-            ])
+            })
+            await delay(5000);
             await page.screenshot({ path: instagramPath + "/5.png" })
             const code = prompt("Code: ")
 
@@ -100,6 +82,7 @@ const login = async () => {
                     }
                 })
             })
+            await delay(5000);
             await page.screenshot({ path: instagramPath + "/7.png" })
 
         }
