@@ -65,7 +65,7 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
             await page.type("#m_login_password", pass) // password field
             await page.screenshot({ path: `${facebookPath}/2.png` })
             // click Log In button
-            await page.click("#login_password_step_element > button")
+            await page.click("button[type='button']");
             await delay(5000);
 
             // check if you logged in or not
@@ -82,6 +82,7 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
                 await delay(3000)
             }
             loggedIn = true;
+            await page.screenshot({ path: facebookPath + "/5.png" })
         }
 
         if (saved) {
@@ -111,11 +112,11 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
 
                 postField.click();
             })
-            await page.screenshot({ path: facebookPath + "/5.png" })
+            await page.screenshot({ path: facebookPath + "/6.png" })
             await delay(1000)
             // the url will changed. after that, you can upload anything
             if (page.url() === "https://m.facebook.com/?soft=composer") {
-                await page.screenshot({ path: facebookPath + "/6.png" })
+                await page.screenshot({ path: facebookPath + "/7.png" })
                 await page.click("#structured_composer_form > div > div > button:nth-child(1)")
                 // const upload = await page.$("#photo_input")
 
@@ -139,7 +140,7 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
                 await delay(10000)
             }
             // last screenshot
-            await page.screenshot({ path: facebookPath + "/7.png" })
+            await page.screenshot({ path: facebookPath + "/8.png" })
         }
     } catch (error) {
         throw Boom.badRequest(error);
