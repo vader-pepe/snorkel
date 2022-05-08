@@ -65,10 +65,8 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
             await page.type("#m_login_password", pass) // password field
             await page.screenshot({ path: `${facebookPath}/2.png` })
             // click Log In button
-            await Promise.all([page.click("button"), page.waitForNavigation({
-                waitUntil: 'networkidle2',
-                timeout: 0
-            })])
+            await page.click("#login_password_step_element > button")
+            await delay(5000);
 
             // check if you logged in or not
             await page.screenshot({ path: "./facebook/3.png" })
