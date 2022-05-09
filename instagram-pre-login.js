@@ -53,7 +53,12 @@ const login = async () => {
             // click Log In button
             await delay(500)
             await page.screenshot({ path: instagramPath + "/4.png" })
-            await page.click("button[type='submit']")
+            await Promise.all([
+                page.click("button[type='submit']"),
+                page.waitForNavigation({
+                    waitUntil: "networkidle2"
+                })
+            ])
             await delay(5000);
             await page.evaluate(() => {
                 // eslint-disable-next-line no-undef
