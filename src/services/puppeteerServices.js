@@ -166,7 +166,7 @@ export const getTwitImg = async (page, twitURL) => {
         // press enter after typing the url
         await field.press("Enter");
 
-        await delay(500);
+        await page.waitForSelector("#__next > div:nth-child(1) > div > div.relative.pt-32 > div:nth-child(1) > div.flex.flex-col.items-start > div.flex.w-full.max-w-full.overflow-x-auto > div > div.relative.px-5.w-full.h-full.object-cover.flex.items-center.justify-center.rounded-md > div")
 
         await page._client.send('Page.setDownloadBehavior', {
             behavior: 'allow',
