@@ -2,26 +2,38 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const iPhone = puppeteer.devices['iPhone SE'];
-
+const _puppeteerCluster = require("puppeteer-cluster");
 
 const userDir = path.resolve('./userDataDir')
 const facebookPath = path.resolve('./facebook');
 
+
 const session = async () => {
+    const cluster = await _puppeteerCluster.Cluster.launch({
+        concurrency: _puppeteerCluster.Cluster.CONCURRENCY_CONTEXT,
+        maxConcurrency: 1,
+        puppeteerOptions: {
+            userDataDir: userDir,
+        },
+        monitor: true,
+        timeout: 300000,
+    });
+
     try {
         // const user = process.env.FB_USER;
         // const pass = process.env.FB_PASS;
 
-        const browser = await puppeteer.launch({
-            userDataDir: userDir,
+        await cluster.task(async ({ page, data = "https://www.facebook.com" }) => {
+            await page.emulate(iPhone);
+
+            await page.goto(data, { waitUntil: 'networkidle2' });
+
+            await page.screenshot({ path: `${facebookPath}/session.png` })
+
         });
-        const page = await browser.newPage();
 
-        await page.emulate(iPhone);
+        await cluster.execute();
 
-        await page.goto('https://www.facebook.com', { waitUntil: 'networkidle2' });
-
-        await page.screenshot({ path: `${facebookPath}/session.png` })
     } catch (error) {
         throw new Error(error);
     }
