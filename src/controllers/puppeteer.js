@@ -17,7 +17,7 @@ const userDir = path.resolve('./userDataDir')
 export const fromTwitter = async (req, res, next) => {
     req.setTimeout(300000);
     const cluster = await Cluster.launch({
-        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        concurrency: Cluster.CONCURRENCY_PAGE,
         maxConcurrency: 1,
         puppeteerOptions: {
             userDataDir: userDir,
