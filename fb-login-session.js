@@ -10,7 +10,7 @@ const facebookPath = path.resolve('./facebook');
 
 const session = async () => {
     const cluster = await _puppeteerCluster.Cluster.launch({
-        concurrency: _puppeteerCluster.Cluster.CONCURRENCY_CONTEXT,
+        concurrency: _puppeteerCluster.Cluster.CONCURRENCY_PAGE,
         maxConcurrency: 1,
         puppeteerOptions: {
             userDataDir: userDir,
