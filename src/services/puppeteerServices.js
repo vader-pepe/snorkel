@@ -36,7 +36,6 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
         await page.emulate(iPhone);
         await page.goto("https://www.facebook.com/");
         await page.screenshot({ path: `${facebookPath}/1.png` })
-        await page.waitForSelector("#m_login_email");
         const isNotLoggedIn = await page.$("#m_login_email")
         let saved = false;
         let loggedIn = true;
