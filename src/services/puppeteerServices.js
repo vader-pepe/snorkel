@@ -218,7 +218,7 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
 
         const foreignIPEle = await page.$("html > body > div > section > div > div > div > h2");
 
-        if (GetProperty(foreignIPEle, "textContent") === "We Detected An Unusual Login Attempt") throw new Error("Detected foreign IP");
+        if (!!foreignIPEle && GetProperty(foreignIPEle, "textContent") === "We Detected An Unusual Login Attempt") throw new Error("Detected foreign IP");
 
         if (isNotLoggedIn) {
             loggedIn = false;
