@@ -276,7 +276,6 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
         })
 
         if (loggedIn) {
-            // TODO: check if home screen have account chooser
             await page.screenshot({ path: instagramPath + "/2.png" })
             // start posting
             const [fileChooser] = await Promise.all([
@@ -315,6 +314,7 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
 
                     shareBtn.click();
                 })
+                // TODO: still buggy here. need help
                 await page.waitForFunction('Array.from(document.querySelectorAll("p")).find(el => el.textContent === `Your photo has been posted.`)', {
                     timeout: 0
                 })
