@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
-import * as puppeteerController from '../controllers/puppeteer';
+import * as posting from '../controllers/posting';
 
 const router = Router();
 
 /**
  * POST /api/puppeteer.
  */
-router.post('/', puppeteerController.fromTwitter);
+router.post('/fromTwitter', posting.fromTwitter);
 
 export default router;

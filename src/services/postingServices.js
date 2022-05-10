@@ -30,23 +30,28 @@ async function GetProperty(element, property) {
     return await (await element.getProperty(property)).jsonValue();
 }
 
-export const postToFacebook = async (page, user = process.env.FB_USER, pass = process.env.FB_PASS, photo) => {
+export const postToFacebook = async (page, user = process.env.FB_USER, pass = process.env.FB_PASS, photo, caption = "Sent from API") => {
 
     try {
         await page.emulate(iPhone);
         await page.goto("https://www.facebook.com/");
-        await page.screenshot({ path: `${facebookPath}/1.png` })
+
+        // check if not logged in
         const isNotLoggedIn = await page.$("#m_login_email")
-        let saved = false;
         let loggedIn = true;
         let detectedForeignIp = false;
+
+        // check if account saved
         const chooseAccEle = await page.$("div > p");
         let chooseAcc = "";
+        let saved = false;
 
         if (chooseAccEle) {
             chooseAcc = await GetProperty(chooseAccEle, "textContent");
+            if (chooseAcc === "Choose your account") saved = true;
         }
 
+        // check if login from foreign IP address
         const loginAppr = await page.$("#checkpoint_title");
 
         if (loginAppr) {
@@ -56,8 +61,6 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
         if (detectedForeignIp) {
             throw new Error("Detected foreign IP");
         }
-
-        if (chooseAcc === "Choose your account") saved = true;
         if (isNotLoggedIn) {
             loggedIn = false;
             await page.type("#m_login_email", user) // login field
@@ -101,6 +104,7 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
             await page.click("a > span");
             await page.screenshot({ path: facebookPath + "/3a.png" })
         }
+
         if (loggedIn) {
 
             // finding post field and clicking it
@@ -111,16 +115,23 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
 
                 postField.click();
             })
+            await delay(1000);
             await page.screenshot({ path: facebookPath + "/6.png" })
-            await delay(1000)
             // the url will changed. after that, you can upload anything
             if (page.url() === "https://m.facebook.com/?soft=composer") {
                 await page.screenshot({ path: facebookPath + "/7.png" })
+
+                // write a caption
+                await page.evaluate((caption) => {
+                    // eslint-disable-next-line no-undef
+                    const textareas = Array.from(document.querySelectorAll('textarea'))
+
+                    textareas[1].value = caption;
+                }, caption);
+
                 await page.click("#structured_composer_form > div > div > button:nth-child(1)")
-                // const upload = await page.$("#photo_input")
 
                 // // your file here
-                // await upload.uploadFile(`./twitter/${photo}`)
                 // start posting
                 const [fileChooser] = await Promise.all([
                     page.waitForFileChooser(),
@@ -136,7 +147,7 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
                 await fileChooser.accept([`${twitterPath}/${photo}`]);
 
                 await page.click("#composer-main-view-id > div > div > div > button")
-                await delay(10000)
+                await page.waitForFunction('Array.from(document.querySelectorAll("div")).find(el => el.textContent === `Your post is now published.`)')
             }
             // last screenshot
             await page.screenshot({ path: facebookPath + "/8.png" })
@@ -147,9 +158,16 @@ export const postToFacebook = async (page, user = process.env.FB_USER, pass = pr
 };
 
 export const getTwitImg = async (page, twitURL) => {
-    // https://twitter.com/txtdarigajelas/status/1520431822735257600
+    // flow:
+    // 1: go to https://kizie.co/tools/twitter-image
+    // 2: input twitter post link
+    // 3: press enter
+    // 4: wait for selector to available
+    // 5: click Size > Post
+    // 6: click save image
+    // 7: wait for "Image exported!"
+
     const tweetId = twitURL.split("/")[5];
-    // https://kizie.co/tools/twitter-image
 
     try {
 
@@ -165,7 +183,7 @@ export const getTwitImg = async (page, twitURL) => {
         // press enter after typing the url
         await field.press("Enter");
 
-        await page.waitForSelector("#__next > div:nth-child(1) > div > div.relative.pt-32 > div:nth-child(1) > div.flex.flex-col.items-start > div.flex.w-full.max-w-full.overflow-x-auto > div > div.relative.px-5.w-full.h-full.object-cover.flex.items-center.justify-center.rounded-md > div")
+        await page.waitForSelector("#__next > div:nth-child(1) > div > div.relative.pt-32 > div:nth-child(1) > div.flex.flex-col.items-start > div.flex.w-full.max-w-full.overflow-x-auto > div > div.relative.px-5.w-full.h-full.object-cover.flex.items-center.justify-center.rounded-md.transition-all > div")
 
         await page._client.send('Page.setDownloadBehavior', {
             behavior: 'allow',
@@ -181,8 +199,6 @@ export const getTwitImg = async (page, twitURL) => {
 
         });
 
-        await delay(500);
-
         await page.evaluate(() => {
             // eslint-disable-next-line no-undef
             const downloadIcon = document.querySelector("#__next > div:nth-child(1) > div > div > div > div > div > div > button")
@@ -193,9 +209,8 @@ export const getTwitImg = async (page, twitURL) => {
 
         // await page.waitForSelector
 
-        await delay(5000);
+        await page.waitForSelector("div.go2344853693");
         // screenshot
-        await page.screenshot({ path: twitterPath + '/kizie.png', fullPage: true });
 
         return `kizie-${tweetId}.png`;
     } catch (error) {
@@ -208,13 +223,16 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
     try {
 
         await page.emulate(iPhone);
-        await page.goto("https://www.instagram.com/");
-        await delay(3000);
+        await page.goto("https://www.instagram.com/", {
+            waitUntil: "networkidle2"
+        });
         await page.screenshot({ path: instagramPath + "/1.png" })
         const findAllBtns = await page.$$eval("button", (elements) => elements.map((v) => v.textContent))
+        // check if not logged in
         const isNotLoggedIn = findAllBtns.find(v => v === "Log In")
         let loggedIn = true;
 
+        // check if login from foreign IP address
         const foreignIPEle = await page.$("html > body > div > section > div > div > div > h2");
 
         if (!!foreignIPEle && GetProperty(foreignIPEle, "textContent") === "We Detected An Unusual Login Attempt") throw new Error("Detected foreign IP");
@@ -230,21 +248,6 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
 
                 loginBtn.click();
             })
-
-            // login with facebook credentials
-
-            // await Promise.all([page.click("button"), page.waitForNavigation({
-            //         waitUntil: 'networkidle0'
-            // })])
-
-            // await page.type("#m_login_email", "YOUR USERNAME") //login field
-            // await page.type("#m_login_password", `YOUR PASSWORD`) //password field
-            // // click Log In button
-            // await Promise.all([page.click("button"), page.waitForNavigation({
-            //         waitUntil: 'networkidle0',
-            // })])
-            // await delay(3000)
-            // await page.screenshot({ path: "./instagram/login2.png" })
 
             // login directly with username and password
             await page.type("input[name='username']", user) // login field
@@ -265,6 +268,8 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
         }
 
         if (loggedIn) {
+            // TODO: check if home screen have account chooser
+            await page.screenshot({ path: instagramPath + "/2.png" })
             // start posting
             const [fileChooser] = await Promise.all([
                 page.waitForFileChooser(),
@@ -302,7 +307,7 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
 
                     shareBtn.click();
                 })
-                await delay(10000)
+                await page.waitForFunction('Array.from(document.querySelectorAll("p")).find(el => el.textContent === `Your photo has been posted.`)')
             }
             await page.screenshot({ path: instagramPath + "/9.png" })
         }
