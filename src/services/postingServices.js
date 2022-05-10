@@ -267,6 +267,14 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
             loggedIn = true;
         }
 
+        // check if there's a continue button
+        await page.evaluate(() => {
+            // eslint-disable-next-line no-undef
+            const continueBtn = Array.from(document.querySelectorAll("button > span")).find(el => el.textContent.includes("Continue"));
+
+            if (continueBtn) continueBtn.parentElement.click()
+        })
+
         if (loggedIn) {
             // TODO: check if home screen have account chooser
             await page.screenshot({ path: instagramPath + "/2.png" })
