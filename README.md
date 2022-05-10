@@ -14,7 +14,7 @@ This uses __puppeteer__ to execute the actions. Becareful! If you use VPS and th
 #### POST From Twitter to FB and IG
 
 ```http
-  POST /api/puppeteer
+  POST /api/posting/fromTwitter
 ```
 
 | Parameter | Type     | Description                |
