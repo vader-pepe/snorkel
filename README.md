@@ -68,6 +68,8 @@ You can hit with http request. Or better, use IFTTT and setup your webhook.
 - Add video supports
 - Add story supports
 - Realtime chat sync (FB, IG, TW)
+- Add proper way to get a session (NEED CONTRIBUTOR FOR DETAILED LOGIN FLOW!)
+- Migrate to TypeScript
 - All other infinite todo list goes here . . .
 
 
