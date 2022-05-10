@@ -70,6 +70,7 @@ You can hit with http request. Or better, use IFTTT and setup your webhook.
 - Realtime chat sync (FB, IG, TW)
 - Add proper way to get a session (NEED CONTRIBUTOR FOR DETAILED LOGIN FLOW!)
 - Migrate to TypeScript
+- check if IG has account selector (URGENT)
 - All other infinite todo list goes here . . .
 
 
