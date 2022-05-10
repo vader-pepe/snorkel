@@ -62,8 +62,12 @@ You can hit with http request. Or better, use IFTTT and setup your webhook.
 ## TODO List:
 
 - Optimizing code. (Sometimes they not doing what I told them to do 😡)
-- Adds video supports
+- Add post from Facebook & Instagram feature
+- Add youtube support
+- Get all comments/reply from a post (FB, IG, TW) 
+- Add video supports
 - Add story supports
+- Realtime chat sync (FB, IG, TW)
 - All other infinite todo list goes here . . .
 
 
