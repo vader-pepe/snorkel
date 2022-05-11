@@ -314,10 +314,8 @@ export const postToInstagram = async (page, user = process.env.IG_USER, pass = p
 
                     shareBtn.click();
                 })
-                // TODO: still buggy here. need help
-                await page.waitForFunction('Array.from(document.querySelectorAll("p")).find(el => el.textContent === `Your photo has been posted.`)', {
-                    timeout: 0
-                })
+                // wait for notification to popup
+                await page.waitForSelector("div > div > div > div > p")
             }
             await page.screenshot({ path: instagramPath + "/9.png" })
         }
