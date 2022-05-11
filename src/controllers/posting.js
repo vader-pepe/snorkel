@@ -44,7 +44,7 @@ export const fromTwitter = async (req, res, next) => {
     try {
         const data = req.body;
 
-        await cluster.execute(data);
+        await cluster.queue(data);
 
     } catch (error) {
         // this used to send error response to the client.
