@@ -14,10 +14,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   // Request methods you wish to allow
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'POST, GET'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET');
 
   // Request headers you wish to allow
   res.setHeader(
