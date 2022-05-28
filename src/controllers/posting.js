@@ -24,8 +24,8 @@ export const fromTwitter = async (req, res, next) => {
         maxConcurrency: 1,
         puppeteerOptions: {
             userDataDir: userDir,
+            args: ['--no-sandbox']
         },
-        monitor: true,
     });
 
     // define your task (in this example we extract the title of the given page)
@@ -47,7 +47,6 @@ export const fromTwitter = async (req, res, next) => {
         await cluster.queue(data);
 
     } catch (error) {
-        // this used to send error response to the client.
         // next(error);
         logger.error(error.stack);
     } finally {

@@ -58,6 +58,7 @@
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
     "mysql2": "^2.3.3",
+    "node-cron": "^3.0.0",
     "pg": "^8.7.1",
     "prompt-sync": "^4.2.0",
     "puppeteer": "^13.7.0",
