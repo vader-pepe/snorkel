@@ -93,7 +93,7 @@ const getTwitImg = async (rawData) => {
 
     return `kizie-${tweetId}.png`;
   } catch (error) {
-    throw new Error(error.stack);
+    console.log(error.stack);
   } finally {
     await browser.close();
   }
@@ -223,7 +223,7 @@ const postToFacebook = async (user, pass, photo, caption = 'Sent from API') => {
       await page.screenshot({ path: `${facebookPath}/8.png` });
     }
   } catch (error) {
-    throw new Error(error.stack);
+    console.log(error.stack);
   } finally {
     await browser.close();
   }
@@ -264,7 +264,7 @@ const postToInstagram = async (
       GetProperty(foreignIPEle, 'textContent') ===
       'We Detected An Unusual Login Attempt'
     )
-      throw new Error('Detected foreign IP');
+      console.log('Detected foreign IP');
 
     if (isNotLoggedIn) {
       loggedIn = false;
@@ -362,7 +362,7 @@ const postToInstagram = async (
       await page.screenshot({ path: `${instagramPath}/9.png` });
     }
   } catch (error) {
-    throw new Error(error.stack);
+    console.log(error.stack);
   } finally {
     await browser.close();
   }
