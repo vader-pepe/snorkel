@@ -43,7 +43,7 @@ cron.schedule('*/10 * * * * *', () => {
           jsonData.caption
         );
         // delete file after posting
-        fs.unlinkSync(`${twitterPath}/${img}`);
+        fs.unlinkSync(`${twitterPath}/${twitIMG}`);
         // delete the first line of the file
         const newData = data.split('\n').slice(1).join('\n');
         fs.writeFile(requestFile, newData, 'utf8', (err) => {

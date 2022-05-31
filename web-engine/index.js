@@ -32,7 +32,7 @@ async function GetProperty(element, property) {
 const getTwitImg = async (rawData) => {
   const browser = await puppeteer.launch({
     userDataDir,
-    headless: false,
+    args: ['--no-sandbox']
   });
   const page = await browser.newPage();
 
@@ -102,7 +102,7 @@ const getTwitImg = async (rawData) => {
 const postToFacebook = async (user, pass, photo, caption = 'Sent from API') => {
   const browser = await puppeteer.launch({
     userDataDir,
-    headless: false,
+    args: ['--no-sandbox']
   });
   const page = await browser.newPage();
   try {
@@ -237,7 +237,7 @@ const postToInstagram = async (
 ) => {
   const browser = await puppeteer.launch({
     userDataDir,
-    headless: false,
+    args: ['--no-sandbox']
   });
   const page = await browser.newPage();
   try {
@@ -245,6 +245,7 @@ const postToInstagram = async (
     await page.goto('https://www.instagram.com/', {
       waitUntil: 'networkidle2',
     });
+    await delay(5000);
     await page.screenshot({ path: `${instagramPath}/1.png` });
     const findAllBtns = await page.$$eval('button', (elements) =>
       elements.map((v) => v.textContent)
@@ -261,7 +262,7 @@ const postToInstagram = async (
     if (
       !!foreignIPEle &&
       GetProperty(foreignIPEle, 'textContent') ===
-        'We Detected An Unusual Login Attempt'
+      'We Detected An Unusual Login Attempt'
     )
       throw new Error('Detected foreign IP');
 
