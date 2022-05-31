@@ -56,6 +56,6 @@ cron.schedule('*/10 * * * * *', () => {
       }
     });
   } catch (error) {
-    throw new Error(error.stack);
+    console.log(error.stack);
   }
 });
