@@ -87,8 +87,8 @@ const getTwitImg = async (rawData) => {
     });
 
     // await page.waitForSelector
-    await delay(5000);
     await page.waitForSelector('div.go2344853693');
+    await delay(5000);
     // screenshot
 
     return `kizie-${tweetId}.png`;
