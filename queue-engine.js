@@ -11,8 +11,7 @@ require('dotenv').config({ path: envFile });
 
 let requestBefore = '';
 
-// code here will run every 10 seconds.
-cron.schedule('*/10 * * * * *', () => {
+const start = async () => {
   try {
     fs.readFile(requestFile, 'utf8', async (err, data) => {
       if (err) {
@@ -58,4 +57,9 @@ cron.schedule('*/10 * * * * *', () => {
   } catch (error) {
     console.log(error.stack);
   }
+}
+
+// code here will run every 10 seconds.
+cron.schedule('*/10 * * * * *', () => {
+  start();
 });
