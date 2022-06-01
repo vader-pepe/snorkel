@@ -183,8 +183,9 @@ const postToFacebook = async (user, pass, photo, caption = 'Sent from API') => {
         postField.click();
       });
       await page.waitForSelector(
-        '[data-sigil="touchable hidden-button photo-button"]'
-      );
+        '[data-sigil="touchable hidden-button photo-button"]', {
+        timeout: 60000
+      });
       await page.screenshot({ path: `${facebookPath}/6.png` });
       // the url will changed. after that, you can upload anything
       if (page.url() === 'https://m.facebook.com/?soft=composer') {
