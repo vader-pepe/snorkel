@@ -43,7 +43,9 @@ const getTwitImg = async (rawData) => {
     // get the first line of the file
     twitURL = data.link.split('\n')[0];
     tweetId = twitURL.split('/')[5];
-    await page.goto(`https://kizie.co/tools/twitter-image`);
+    await page.goto(`https://kizie.co/tools/twitter-image`, {
+      waitUntil: 'networkidle2'
+    });
 
     // wait for the page to load
     await page.waitForSelector('input');
@@ -107,7 +109,9 @@ const postToFacebook = async (user, pass, photo, caption = 'Sent from API') => {
   const page = await browser.newPage();
   try {
     await page.emulate(iPhone);
-    await page.goto('https://www.facebook.com/');
+    await page.goto('https://www.facebook.com/', {
+      waitUntil: 'networkidle2'
+    });
 
     // check if not logged in
     const isNotLoggedIn = await page.$('#m_login_email');
