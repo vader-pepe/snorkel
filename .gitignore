@@ -8,8 +8,8 @@ node_modules/
 .env
 
 # Others
-/web-engine/facebook/*
-/web-engine/instagram/*
-/web-engine/twitter/*
+#/web-engine/facebook/*
+#/web-engine/instagram/*
+#/web-engine/twitter/*
 /web-engine/user-data/*
 request.txt
