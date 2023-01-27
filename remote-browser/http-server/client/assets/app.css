@@ -1,0 +1,130 @@
+* {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  position: relative;
+}
+
+video {
+  height: 100%;
+  object-fit: cover;
+}
+
+hr {
+  border-left: none;
+  border-right: none;
+}
+
+noscript, .welcome, .browsing {
+  cursor: default;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  z-index: 5;
+}
+
+noscript, .welcome {
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(221, 221, 221);
+  font-size: 1.5rem;
+}
+
+.welcome {
+  z-index: 10;
+}
+
+noscript {
+  z-index: 15;
+}
+
+.toolbar {
+  padding: 5px 10px;
+  width: calc(100% - 20px);
+  display: flex;
+  align-items: center;
+}
+
+.network {
+  text-align: right;
+  min-width: 66px;
+  width: 66px;
+  white-space: nowrap;
+}
+
+.network span {
+  vertical-align: sub;
+}
+
+.go-back, .go-forward {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 26px;
+  width: 26px;
+  background-color: transparent;
+}
+
+.go-back svg.icon, .go-forward svg.icon {
+  margin: 0;
+}
+
+.go-back:hover, .go-forward:hover {
+  background-color: #eaeaea;
+}
+
+.go-back:active, .go-forward:active {
+  background-color: #d9d7d7;
+}
+
+.icon {
+  margin: 0 5px;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.url {
+  padding: 4px;
+  border-radius: 3px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.stream {
+  height: calc(100% - 38px);
+  position: relative;
+  overflow-y: hidden;
+}
+
+.hover {
+  height: 100%;
+  position: absolute;
+  user-select: none;
+  z-index: 1;
+}
+
+.input {
+  position: absolute;
+  appearance: none;
+  background-color: transparent;
+  border: none;
+  color: transparent;
+  display: none;
+  z-index: 2;
+}
+
+.input:focus {
+  border: none;
+  outline: none;
+}
+
+.input::selection, .input::-moz-selection {
+  background-color: transparent;
+}
