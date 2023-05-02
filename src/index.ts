@@ -1,6 +1,9 @@
 import { KnownDevices, Page } from "puppeteer";
 import puppeteerInstance from "./puppeteerInstance";
 const iphoneSe = KnownDevices['iPhone SE']
+import { Server } from "socket.io"
+const io = new Server()
+import "dotenv/config"
 
 const instagramSelectors = {
   emailField: `input[aria-label="Phone number, username or email address"]`,
@@ -58,61 +61,70 @@ const instagramSelectors = {
   // filters.parentElement.parentElement.parentElement.children[1].children[0] ==> clickable filters (0-11)
 }
 
-function getElementByXpath(path: string) {
-  return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-}
-
 const USERNAME = process.env.USERNAME as string
 const PASSWORD = process.env.PASSWORD as string
 
 async function isInstagramLoggedIn(page: Page) {
-  await page.exposeFunction("getElementByXpathInject", getElementByXpath)
+  let isLoggedin = false
 
-  const isLoggedin = await page.evaluate(async (selector) => {
-    // @ts-ignore
-    const isLoginBtnExist = await window.getElementByXpathInject(selector) as HTMLDivElement
-    if (!!isLoginBtnExist) {
-      isLoginBtnExist.parentElement?.click()
-      return false
-    }
-    return true
-  }, instagramSelectors.loginBtn)
+  await new Promise(async resolve => {
+    resolve(await page.waitForXPath(instagramSelectors.loginBtn))
+  })
 
-  if (isLoggedin) {
-    return true
+  const isLoginBtnExist = await page.$x(instagramSelectors.loginBtn)
+  if (!!isLoginBtnExist && isLoginBtnExist.length > 0) {
+    // only the parent is clickable
+    const loginBtn = await isLoginBtnExist[0].$$('xpath/' + '..')
+    loginBtn[0].click()
+
+    // login process
+    await page.waitForSelector(instagramSelectors.emailField)
+    await page.type(instagramSelectors.emailField, USERNAME)
+    await page.type(instagramSelectors.passwordField, PASSWORD)
+
+    await Promise.all([
+      page.waitForNavigation({
+        waitUntil: 'networkidle0'
+      }),
+      page.click(instagramSelectors.loginSubmitBtn)
+    ])
+
+    // set listener here for inputting security code
+
+    // await page.waitForSelector(instagramSelectors.mNewPost, {
+    //  timeout: 100
+    // })
+
   }
 
-  await page.type(instagramSelectors.emailField, USERNAME)
-  await page.type(instagramSelectors.passwordField, PASSWORD)
-  await page.waitForSelector(instagramSelectors.loginSubmitBtn)
+  isLoggedin = true
 
-  await Promise.all([
-    page.waitForNavigation({
-      waitUntil: 'networkidle0'
-    }),
-    page.click(instagramSelectors.loginSubmitBtn)
-  ])
+  // const regionBlocked = await page.evaluate(async (selector) => {
+  // const isSuspiciousLoginElementExist = document.querySelector(selector)
+  // if (!!isSuspiciousLoginElementExist) {
+  // return true
+  // }
+  // return false
+  // }, instagramSelectors.emailField)
 
-  const regionBlocked = await page.evaluate(async (selector) => {
-    const isSuspiciousLoginElementExist = document.querySelector(selector)
-    if (!!isSuspiciousLoginElementExist) {
-      return true
-    }
-    return false
-  }, instagramSelectors.emailField)
+  // if (regionBlocked) {
+  // throw ('Please handle login!')
+  // choose verification method (phone/email)
+  // input the code given
+  // proceed to home
+  // }
 
-  if (regionBlocked) {
-    throw ('Please handle login!')
-    // choose verification method (phone/email)
-    // input the code given
-    // proceed to home
-  }
-
-  return true
+  return isLoggedin
 }
 
 async function instagramFlow() {
   const page = await puppeteerInstance()
+  page.setDefaultTimeout(0)
+
+  io.on('connection', socket => {
+    console.log('user connected')
+  })
+
   try {
     await page.emulate(iphoneSe)
     await page.goto('https://www.instagram.com', {
@@ -123,6 +135,7 @@ async function instagramFlow() {
 
   } catch (error: any) {
     const errorMsg = error?.message as string
+    console.log(errorMsg)
   }
 }
 
