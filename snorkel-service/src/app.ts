@@ -1,8 +1,9 @@
-import express, { Request, Response, NextFunction, Express } from "express"
+import express, { Request, Response, NextFunction } from "express"
 import bodyParser from "body-parser"
 import routes from "./routes"
 import cors from "cors"
-const app: Express = express()
+
+const app = express()
 
 app.use(cors())
 app.use(bodyParser.json());

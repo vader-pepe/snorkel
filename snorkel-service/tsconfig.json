@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
-    "outDir": "dist",
+    "target": "ES2017",
+    "lib": ["es6", "dom"],
+    "outDir": "build",
     "module": "commonjs",
+    "rootDir": "src",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
@@ -11,11 +13,6 @@
   },
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Recommended",
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

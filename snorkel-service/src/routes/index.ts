@@ -1,8 +1,4 @@
-// const status = require('../src/health/routes');
-// const users = require('../src/users/routes');
-// const validateAuth = require('../middlewares/validateAuth');
-// const getData = require('../middlewares/getData');
-import status from "../src/health/routes"
+import status from "../health/routes"
 import { Express } from "express"
 
 // module.exports = (app) => {

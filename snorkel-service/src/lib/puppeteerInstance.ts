@@ -10,9 +10,7 @@ async function puppeteerInstance(config?: PuppeteerLaunchOptions) {
     userDataDir,
     ...config
   });
-  const page = await browser.newPage();
-  return page
+  return browser
 }
 
 export default puppeteerInstance
-

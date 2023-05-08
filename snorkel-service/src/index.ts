@@ -1,12 +1,13 @@
-// const app = require('./app');
-// const config = require('./config');
 import app from "./app"
 import config from "./config"
 import { AddressInfo } from 'net'
 import http from "http"
 import { Server, Socket } from "socket.io"
+import { Browser } from "puppeteer"
+import puppeteerInstance from "./lib/puppeteerInstance"
 
 const httpServer = http.createServer(app)
+let browser: Browser
 
 const io = new Server(httpServer, {
   cors: {
@@ -16,6 +17,13 @@ const io = new Server(httpServer, {
 
 const PORT = process.env.PORT || config.port;
 
+puppeteerInstance().then(() => {
+  const server = httpServer.listen(PORT, () => {
+    const { port } = server.address() as AddressInfo
+    console.log('server is running on port', port);
+  });
+})
+
 io.on("connection", (socket: Socket) => {
   console.log("user connected")
   socket.on('disconnect', () => {
@@ -23,8 +31,10 @@ io.on("connection", (socket: Socket) => {
   });
 })
 
-const server = httpServer.listen(PORT, () => {
-  const { port } = server.address() as AddressInfo
-  console.log('server is running on port', port);
+process.on('SIGINT', async () => {
+  if (!!browser) {
+    await browser.close();
+  }
+  process.exit();
 });
 

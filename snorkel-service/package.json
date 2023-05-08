@@ -4,7 +4,8 @@
   "description": "Scalable and basic template for making Node.js apps by using express",
   "main": "index.ts",
   "scripts": {
-    "dev": "nodemon",
+    "dev": "nodemon ./src/index.ts",
+    "build": "npx tsc ",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier-eslint \"$PWD/{,!(node_modules)/**/}*.{js,json}\"",
