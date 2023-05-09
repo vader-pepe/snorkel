@@ -2,14 +2,15 @@ import app from "./app"
 import config from "./config"
 import { AddressInfo } from 'net'
 import http from "http"
-import { Server, Socket } from "socket.io"
-import { Browser } from "puppeteer"
+import { Server } from "socket.io"
+import { Page } from "puppeteer"
 import puppeteerInstance from "./lib/puppeteerInstance"
+import logger from "./lib/logger"
 
 const httpServer = http.createServer(app)
-let browser: Browser
+export let page: Page
 
-const io = new Server(httpServer, {
+export const io = new Server(httpServer, {
   cors: {
     origin: 'http://localhost:3000',
   }
@@ -17,24 +18,23 @@ const io = new Server(httpServer, {
 
 const PORT = process.env.PORT || config.port;
 
-puppeteerInstance().then(() => {
+puppeteerInstance().then((mainPage) => {
+  page = mainPage
+  logger.info('Browser initialized')
+  // close the extra page
+  page.close()
   const server = httpServer.listen(PORT, () => {
     const { port } = server.address() as AddressInfo
     console.log('server is running on port', port);
   });
+}).catch(async (error) => {
+  const errorMsg = error.message as string
+  logger.error(errorMsg)
 })
 
-io.on("connection", (socket: Socket) => {
+io.on("connection", (socket) => {
   console.log("user connected")
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
 })
-
-process.on('SIGINT', async () => {
-  if (!!browser) {
-    await browser.close();
-  }
-  process.exit();
-});
-
