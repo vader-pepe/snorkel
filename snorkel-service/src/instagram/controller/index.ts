@@ -4,6 +4,9 @@ import { instagramSelectors } from "../../constants";
 import { KnownDevices, Page } from "puppeteer";
 import status from "../../constants/status";
 import logger from "../../lib/logger";
+
+export let instagramContext: Page
+
 const iphoneSe = KnownDevices['iPhone SE']
 
 export const instagramFlow = async (req: Request, res: Response) => {
@@ -20,6 +23,7 @@ export const instagramFlow = async (req: Request, res: Response) => {
     new Promise(async () => {
       const browser = mainPage.browser()
       const page = await browser.newPage()
+      instagramContext = page
 
       async function isInstagramLoggedIn(page: Page) {
         let isLoggedin = false
@@ -51,19 +55,9 @@ export const instagramFlow = async (req: Request, res: Response) => {
               logger.info('No security code needed')
             })
 
-            // TODO: this doesn't triggered. propbably because there is no way
-            // back to this route.
-            io.on('instagram-security-code-input', async (code) => {
-              await page.type(instagramSelectors.securityCode, code)
-            })
-
-            await page.waitForSelector(instagramSelectors.mNewPost, {
-              timeout: 30000
-            })
-
           }
         }).catch(() => {
-          logger.info('Already Logged in')
+          // keep it empty to not throwing any error
         })
 
         isLoggedin = true
@@ -80,7 +74,27 @@ export const instagramFlow = async (req: Request, res: Response) => {
         const isLoggedin = await isInstagramLoggedIn(page)
 
         if (isLoggedin) {
-          // TODO: start uploading
+          logger.info('Already logged in!')
+          await page.waitForSelector(instagramSelectors.mNewPost, {
+            timeout: 30000
+          }).then(async () => {
+            await page.waitForSelector('xpath/' + instagramSelectors.notNow).then(async () => {
+              await page.click('xpath/' + instagramSelectors.notNow)
+            }).catch(() => {
+              // keep it empty to not throwing any error
+            })
+
+            await page.waitForSelector('xpath/' + instagramSelectors.mCancelAddToHome).then(async () => {
+              await page.click('xpath/' + instagramSelectors.mCancelAddToHome)
+            }).catch(() => {
+              // keep it empty to not throwing any error
+            })
+
+            logger.info('Ready for upload!')
+          }).catch((error) => {
+            const errorMsg = error.msg as string
+            logger.error(errorMsg)
+          })
         }
 
       } catch (error: any) {
@@ -92,7 +106,7 @@ export const instagramFlow = async (req: Request, res: Response) => {
   } else {
     res.status(status.HTTP_400_BAD_REQUEST).json({
       status: status.HTTP_400_BAD_REQUEST,
-      message: 'No Username Provided',
+      message: 'No Username or Password Provided',
     });
   }
 };

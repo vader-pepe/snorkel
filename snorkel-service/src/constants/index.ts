@@ -28,6 +28,7 @@ export const instagramSelectors = {
   // newPost.parentElement.parentElement.parentElement.parentElement.parentElement ==> the a element which is clickable
   // use querySelectorAll
   mNewPost: `svg[aria-label="Home"]`,
+  mCancelAddToHome: `//button[contains(text(),'Cancel')]`,
   // mNewPost[1].parentElement.parentElement.parentElement.parentElement.parentElement ==> the a element which is clickable
   mPostType: `div[role="dialog"]`,
   // mPostType.children[0].children[0].children[0].children[0] ==> post
