@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { page as mainPage, io } from "../..";
-import { instagramSelectors } from "../../constants";
 import { KnownDevices, Page } from "puppeteer";
 import status from "../../constants/status";
 import logger from "../../lib/logger";
+import selectors from "../../constants"
 
-export let instagramContext: Page
+const { instagramSelectors } = selectors
+
+export let instagramPageCtx: Page
 
 const iphoneSe = KnownDevices['iPhone SE']
 
@@ -22,8 +24,9 @@ export const instagramFlow = async (req: Request, res: Response) => {
 
     new Promise(async () => {
       const browser = mainPage.browser()
+      // page context for instagram
       const page = await browser.newPage()
-      instagramContext = page
+      instagramPageCtx = page
 
       async function isInstagramLoggedIn(page: Page) {
         let isLoggedin = false
@@ -91,9 +94,7 @@ export const instagramFlow = async (req: Request, res: Response) => {
             })
 
             logger.info('Ready for upload!')
-          }).catch((error) => {
-            const errorMsg = error.msg as string
-            logger.error(errorMsg)
+            io.emit('instagram-ready')
           })
         }
 

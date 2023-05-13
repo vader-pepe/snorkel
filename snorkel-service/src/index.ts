@@ -4,10 +4,9 @@ import { AddressInfo } from 'net'
 import http from "http"
 import { Server } from "socket.io"
 import { Page } from "puppeteer"
-import puppeteerInstance from "./lib/puppeteerInstance"
+import puppeteerInstance from "./lib/puppeteer-instance"
 import logger from "./lib/logger"
-import { instagramSelectors } from "./constants"
-import { instagramContext } from "./instagram/controller"
+import socketInstance from "./lib/socket-instance"
 
 const httpServer = http.createServer(app)
 export let page: Page
@@ -37,14 +36,7 @@ puppeteerInstance().then((mainPage) => {
 io.on("connection", (socket) => {
   console.log("user connected")
 
-  socket.on('instagram-security-code-input', async (code) => {
-    if (!!instagramContext) {
-      await instagramContext.type(instagramSelectors.securityCode, code)
-      await instagramContext.waitForXPath(instagramSelectors.confirmVerifCode).then(async () => {
-        await instagramContext.click('xpath/' + instagramSelectors.confirmVerifCode)
-      })
-    }
-  })
+  socketInstance(socket)
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
