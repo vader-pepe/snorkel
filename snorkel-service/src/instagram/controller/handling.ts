@@ -3,6 +3,11 @@ import { instagramPageCtx } from ".";
 import selectors from "../../constants/index"
 import logger from "../../lib/logger";
 import path from "path";
+import { writeFile } from "fs";
+
+const storage = path.resolve('./src/storage/instagram')
+
+type ServerResponse = (arg: { message: string }) => { message: string }
 
 const instagramHandling = (socket: Socket) => {
   const { instagramSelectors } = selectors
@@ -17,7 +22,12 @@ const instagramHandling = (socket: Socket) => {
     }
   })
 
-  socket.on('start-uploading', async (file) => {
+  socket.on('instagram-start-uploading', async (file: string | NodeJS.ArrayBufferView, callback: ServerResponse) => {
+
+    writeFile(storage, file, (err) => {
+      callback({ message: err ? "failure" : "success" });
+    });
+
     if (!!instagramPageCtx) {
       await instagramPageCtx.waitForSelector(instagramSelectors.mNewPost).then(async () => {
 
@@ -41,6 +51,7 @@ const instagramHandling = (socket: Socket) => {
           }, instagramSelectors.mPostSpan)
         ])
 
+        await fileChooser.accept([`${storage}/${file}`]);
 
       }).catch(() => {
         logger.error('For some reason upload button is not available')

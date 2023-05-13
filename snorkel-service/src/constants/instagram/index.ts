@@ -22,7 +22,8 @@ export const instagramSelectors = {
   getNewSecurityCode: `//a[contains(text(),'Get a new one')]`,
   goBack: `//a[contains(text(),'Go back')]`,
   turnOnNotifications: `//span[contains(text(),'Turn on notifications')]`,
-  notNow: `//button[contains(text(),'Not Now')]`,
+  notNowBtn: `//button[contains(text(),'Not Now')]`,
+  notNowSaveLoginInfo: `//button[contains(text(),'Not now')]`,
   // this is only the SVG. not clickable
   newPost: `svg[aria-label="New post"]`,
   // newPost.parentElement.parentElement.parentElement.parentElement.parentElement ==> the a element which is clickable

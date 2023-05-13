@@ -81,8 +81,8 @@ export const instagramFlow = async (req: Request, res: Response) => {
           await page.waitForSelector(instagramSelectors.mNewPost, {
             timeout: 30000
           }).then(async () => {
-            await page.waitForSelector('xpath/' + instagramSelectors.notNow).then(async () => {
-              await page.click('xpath/' + instagramSelectors.notNow)
+            await page.waitForSelector('xpath/' + instagramSelectors.notNowSaveLoginInfo).then(async () => {
+              await page.click('xpath/' + instagramSelectors.notNowSaveLoginInfo)
             }).catch(() => {
               // keep it empty to not throwing any error
             })
