@@ -29,11 +29,6 @@ puppeteerInstance().then((mainPage) => {
   page.close()
   const server = httpServer.listen(PORT, async () => {
     const { port } = server.address() as AddressInfo
-    new Promise(() => {
-      instagramInitiator()
-      facebookInitiator()
-      twitterInitiator()
-    })
     console.log('server is running on port', port);
   });
 }).catch(async (error) => {
@@ -43,6 +38,12 @@ puppeteerInstance().then((mainPage) => {
 
 io.on("connection", (socket) => {
   console.log("user connected")
+
+  new Promise(() => {
+    instagramInitiator()
+    facebookInitiator()
+    twitterInitiator()
+  })
 
   socketInstance(socket)
 

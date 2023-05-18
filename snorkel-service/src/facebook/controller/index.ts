@@ -1,7 +1,6 @@
 import { Request, Response } from "express"
 import status from "../../constants/status";
 import selectors from "../../constants/index"
-import logger from "../../lib/logger";
 import { facebookPageCtx } from "./handling";
 
 const { facebookSelectors } = selectors
@@ -19,7 +18,6 @@ export const facebookLoginFlow = async (req: Request, res: Response) => {
 
     new Promise(async () => {
       if (!!facebookPageCtx) {
-        logger.info("User is not logged in. Logging in now")
         await facebookPageCtx.type(facebookSelectors.mEmailField, USERNAME, { delay: 100 })
         await facebookPageCtx.type(facebookSelectors.mPassField, PASSWORD, { delay: 100 })
         await facebookPageCtx.waitForSelector(facebookSelectors.mLoginBtn),

@@ -29,14 +29,14 @@ export const instagramInitiator = async () => {
       })
 
       instagramPageCtx = page
-      io.emit('instagram-loading')
+      io.emit('instagram-state-change', 'loading')
       const isLoggedin = await isInstagramLoggedIn(instagramPageCtx);
       if (isLoggedin) {
-        io.emit('instagram-logged-in')
+        io.emit('instagram-state-change', 'logged-in')
       } else {
-        io.emit('instagram-need-log-in')
+        io.emit('instagram-state-change', 'need-log-in')
       }
-      io.emit('instagram-loading-done')
+      io.emit('instagram-state-change', 'loading-done')
     }).catch(err => {
       const errorMsg = err?.message
       logger.error(errorMsg)
