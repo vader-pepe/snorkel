@@ -1,91 +1,51 @@
-const USERNAME = process.env.USERNAME as string
-const PASSWORD = process.env.PASSWORD as string
+import { Request, Response } from "express"
+import status from "../../constants/status";
+import selectors from "../../constants/index"
+import logger from "../../lib/logger";
+import { facebookPageCtx } from "./handling";
 
-async function isFacebookLoggedIn(page: Page) {
-  const isLoggedIn = await page.evaluate((selector) => {
-    const emailField = document.querySelector(selector)
-    if (!!emailField) {
-      return false
-    }
-    return true
-  }, facebookSelectors.mEmailField)
+const { facebookSelectors } = selectors
 
-  if (isLoggedIn) {
-    logger.info("User already logged in")
-    return true
-  }
+export const facebookLoginFlow = async (req: Request, res: Response) => {
+  const USERNAME = req.body.username
+  const PASSWORD = req.body.password
 
-  logger.info("User is not logged in. Logging in now")
-  await page.type(facebookSelectors.mEmailField, USERNAME, { delay: 100 })
-  await page.type(facebookSelectors.mPassField, PASSWORD, { delay: 100 })
-  await page.waitForSelector(facebookSelectors.mLoginBtn),
+  if (!!USERNAME && !!PASSWORD) {
 
-    await Promise.all([
-      page.waitForNavigation({
-        waitUntil: 'domcontentloaded'
-      }),
-      page.click(facebookSelectors.mLoginBtn)
-    ])
-
-  await page.evaluate((selector) => {
-    const notNow = document.querySelector(selector) as HTMLButtonElement
-    if (!!notNow) {
-      notNow.click()
-    }
-  }, facebookSelectors.mNotNow)
-
-  return true
-}
-
-async function facebookNewTextStatus(page: Page, newStatus = 'test from snorkel') {
-
-  await page.waitForSelector(facebookSelectors.mNewPost)
-
-  await Promise.all([
-    page.waitForNavigation({
-      waitUntil: 'networkidle0'
-    }),
-    page.click(facebookSelectors.mNewPost)
-  ])
-
-  await page.type(facebookSelectors.mStatusField, newStatus, { delay: 100 })
-  // weird Facebook behaviour
-  await page.evaluate((selector) => {
-    let btn = document.querySelector(selector) as HTMLButtonElement
-    btn.click()
-  }, facebookSelectors.mPostBtn)
-
-  // dialog leaving Facebook will appear for no reason
-  page.on('dialog', async dialog => {
-    console.log(dialog.type());
-    console.log(dialog.message());
-    await dialog.dismiss();
-  });
-
-  logger.info("Successfully post a status")
-}
-
-async function facebookNewMediaStatus(page: Page) {
-  // const [fileChooser] = await Promise.all([
-  // page.waitForFileChooser(),
-  // page.click(selectors.mFacebookPhotoBtn),
-  // ]);
-  // await fileChooser.accept(['../1.png']);
-}
-
-async function facebookFlow() {
-  const page = await puppeteerInstance()
-  try {
-    await page.emulate(iphoneSe)
-    await page.goto('https://www.facebook.com', {
-      waitUntil: 'domcontentloaded'
+    res.status(status.HTTP_200_OK).json({
+      status: status.HTTP_200_OK,
+      message: 'OK',
     });
 
-    isFacebookLoggedIn(page)
-    // facebookNewTextStatus(page)
-    facebookNewMediaStatus(page)
-  } catch (error: any) {
-    const errorMsg = error?.message as string
-    logger.error(errorMsg)
+    new Promise(async () => {
+      if (!!facebookPageCtx) {
+        logger.info("User is not logged in. Logging in now")
+        await facebookPageCtx.type(facebookSelectors.mEmailField, USERNAME, { delay: 100 })
+        await facebookPageCtx.type(facebookSelectors.mPassField, PASSWORD, { delay: 100 })
+        await facebookPageCtx.waitForSelector(facebookSelectors.mLoginBtn),
+
+          await Promise.all([
+            facebookPageCtx.waitForNavigation({
+              waitUntil: 'domcontentloaded'
+            }),
+            facebookPageCtx.click(facebookSelectors.mLoginBtn)
+          ])
+
+        await facebookPageCtx.evaluate((selector) => {
+          const notNow = document.querySelector(selector) as HTMLButtonElement
+          if (!!notNow) {
+            notNow.click()
+          }
+        }, facebookSelectors.mNotNow)
+      } else {
+        throw ('Facebook Context not Found!')
+      }
+    })
+  } else {
+    res.status(status.HTTP_404_NOT_FOUND).json({
+      status: status.HTTP_404_NOT_FOUND,
+      message: 'Username or Password not provided!',
+    });
   }
 }
+

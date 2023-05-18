@@ -7,6 +7,9 @@ import { Page } from "puppeteer"
 import puppeteerInstance from "./lib/puppeteer-instance"
 import logger from "./lib/logger"
 import socketInstance from "./lib/socket-instance"
+import initiator from "./initiator"
+
+const { instagramInitiator, facebookInitiator, twitterInitiator } = initiator
 
 const httpServer = http.createServer(app)
 export let page: Page
@@ -24,8 +27,13 @@ puppeteerInstance().then((mainPage) => {
   logger.info('Browser initialized')
   // close the extra page
   page.close()
-  const server = httpServer.listen(PORT, () => {
+  const server = httpServer.listen(PORT, async () => {
     const { port } = server.address() as AddressInfo
+    new Promise(() => {
+      instagramInitiator()
+      facebookInitiator()
+      twitterInitiator()
+    })
     console.log('server is running on port', port);
   });
 }).catch(async (error) => {

@@ -1,12 +1,12 @@
 import express from "express"
-import { instagramLoginFlow } from "./controller"
+import { instagramFlow } from "./controller"
 
 const router = express.Router();
 
 router.post(
   '/login',
   (req, res) => {
-    instagramLoginFlow(req, res);
+    instagramFlow(req, res);
   }
 );
 

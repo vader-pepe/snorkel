@@ -1,5 +1,6 @@
 import status from "../health/routes"
 import instagram from "../instagram/routes"
+import twitter from "../twitter/routes"
 import { Express } from "express"
 
 // module.exports = (app) => {
@@ -13,6 +14,7 @@ import { Express } from "express"
 export default function routes(app: Express): void {
   app.use('/status', status);
   app.use('/instagram', instagram);
+  app.use('/twitter', twitter);
   // app.use('/users', users);
 
   app.use('*', (_req, res) => {
