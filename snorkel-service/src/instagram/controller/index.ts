@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { io } from "../..";
+import { io } from "@/.";
 import { Page } from "puppeteer";
-import status from "../../constants/status";
-import logger from "../../lib/logger";
-import selectors from "../../constants"
-import { instagramPageCtx } from "./handling";
+import status from "@/constants/status";
+import logger from "@/lib/logger";
+import selectors from "@/constants"
+import { instagramPageCtx, isInstagramLoggedIn } from "./handling";
 
 const { instagramSelectors } = selectors
 
@@ -29,6 +29,7 @@ export const instagramLoginFlow = async (req: Request, res: Response) => {
     })
 
     async function instagramBeginLogin(page: Page) {
+      io.emit('instagram-state-change', 'loading')
       const isLoginBtnExist = await page.$x(instagramSelectors.loginBtn)
       if (!!isLoginBtnExist && isLoginBtnExist.length > 0) {
         // only the parent is clickable
@@ -48,12 +49,18 @@ export const instagramLoginFlow = async (req: Request, res: Response) => {
         ])
 
         await page.waitForSelector(instagramSelectors.securityCode).then(() => {
-
           io.emit('instagram-security-code')
-
         }).catch(() => {
           logger.info('No security code needed')
         })
+
+        const isLoggedin = await isInstagramLoggedIn(instagramPageCtx);
+        io.emit('instagram-state-change', 'loading-done')
+        if (isLoggedin) {
+          io.emit('instagram-state-change', 'logged-in')
+        } else {
+          io.emit('instagram-state-change', 'need-log-in')
+        }
       }
     }
 

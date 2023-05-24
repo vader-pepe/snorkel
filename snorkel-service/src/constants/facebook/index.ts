@@ -14,6 +14,7 @@ export const facebookSelectors = {
   mNotNow: `a[role="button"][target="_self"][data-sigil="touchable"]`,
   mNewPost: `div#MComposer[data-top-of-feed-unit-type="composer"][data-referrer="MComposer"] > div > div > div > div[role="button"]`,
   mStatusField: `textarea[aria-label="What's on your mind?"][data-sigil="composer-textarea m-textarea-input"]`,
+  mStatusFieldXpath: `//div[contains(text(),"What's on your mind?")]`,
   mPhotoBtn: `button[data-sigil="touchable hidden-button photo-button"][type="button"]`,
   mPostBtn: `div > button[type="submit"][value="Post"][data-sigil="touchable submit_composer"]`,
 }

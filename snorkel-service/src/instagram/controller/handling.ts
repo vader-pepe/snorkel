@@ -1,25 +1,50 @@
 import { Socket } from "socket.io";
-import selectors from "../../constants/index"
-import logger from "../../lib/logger";
+import selectors from "@/constants"
+import logger from "@/lib/logger";
 import path from "path";
-import { writeFile } from "fs";
 import { KnownDevices, Page } from "puppeteer";
-import { io, page as mainPage } from "../..";
+import { io, page as mainPage } from "@/.";
 
 const iphoneSe = KnownDevices['iPhone SE']
-
 const storage = path.resolve('./src/storage/instagram')
-
-export let instagramPageCtx: Page
-
-type ServerResponse = (arg: { message: string }) => { message: string }
-
 const { instagramSelectors } = selectors
 
-export const instagramInitiator = async () => {
-  if (!!io && !!mainPage) {
-    // run immediately after server start
-    new Promise(async () => {
+export let instagramPageCtx: Page
+let isInstagramCtxCreated = false
+
+export async function isInstagramLoggedIn(page: Page) {
+  let isLoggedin = false
+
+  await page.waitForSelector('xpath/' + instagramSelectors.loginBtn, { timeout: 1500 }).then(() => {
+    isLoggedin = false
+  }).catch(() => {
+    isLoggedin = true
+  })
+
+  page.waitForSelector('xpath/' + instagramSelectors.mCancelAddToHome).then(() => {
+    page.click('xpath/' + instagramSelectors.mCancelAddToHome).catch(() => {
+      // keep empty
+    })
+  }).catch(() => {
+    // keep empty
+  })
+
+  page.waitForSelector('xpath/' + instagramSelectors.notNowBtn).then(() => {
+    page.click('xpath/' + instagramSelectors.notNowBtn).catch(() => {
+      // keep empty
+    })
+  }).catch(() => {
+    // keep empty
+  })
+
+  return isLoggedin
+}
+
+const instagramHandler = (socket: Socket) => {
+  new Promise(async () => {
+    io.emit('instagram-state-change', 'loading')
+    if (!isInstagramCtxCreated) {
+      isInstagramCtxCreated = true
       const browser = mainPage.browser()
       // page context for instagram
       const page = await browser.newPage()
@@ -29,53 +54,52 @@ export const instagramInitiator = async () => {
       })
 
       instagramPageCtx = page
-      io.emit('instagram-state-change', 'loading')
+    }
+
+    if (!!instagramPageCtx) {
       const isLoggedin = await isInstagramLoggedIn(instagramPageCtx);
+      io.emit('instagram-state-change', 'loading-done')
       if (isLoggedin) {
         io.emit('instagram-state-change', 'logged-in')
       } else {
         io.emit('instagram-state-change', 'need-log-in')
       }
-      io.emit('instagram-state-change', 'loading-done')
-    }).catch(err => {
-      const errorMsg = err?.message
-      logger.error(errorMsg)
-    })
-
-  } else {
-    throw ('socket.io or browser instance not found!')
-  }
-
-  async function isInstagramLoggedIn(page: Page) {
-    let isLoggedin = false
-
-    await page.waitForXPath(instagramSelectors.loginBtn).then(() => {
-      return true
-    }).catch(() => {
-      // keep it empty to not throwing any error
-    })
-
-    return isLoggedin
-  }
-}
-
-const instagramHandler = (socket: Socket) => {
-  // security code input handling
-  socket.on('instagram-security-code-input', async (code: string) => {
-    if (!!instagramPageCtx) {
-      await instagramPageCtx.type(instagramSelectors.securityCode, code)
-      await instagramPageCtx.waitForXPath(instagramSelectors.confirmVerifCode).then(async () => {
-        await instagramPageCtx.click('xpath/' + instagramSelectors.confirmVerifCode)
-      })
     }
   })
 
-  socket.on('instagram-start-uploading', async (file: string | NodeJS.ArrayBufferView, callback: ServerResponse) => {
+  // security code input handling
+  socket.on('instagram-security-code-input', async (code: string) => {
+    if (!!instagramPageCtx) {
+      socket.emit('instagram-state-change', 'loading')
+      await instagramPageCtx.click(instagramSelectors.securityCode, { count: 3 })
+      await instagramPageCtx.keyboard.press('Backspace')
+      await instagramPageCtx.type(instagramSelectors.securityCode, code)
+      await instagramPageCtx.waitForSelector('xpath/' + instagramSelectors.confirmVerifCode).then(async () => {
+        await instagramPageCtx.click('xpath/' + instagramSelectors.confirmVerifCode)
+      })
 
-    writeFile(storage, file, (err) => {
-      // TODO: finish this man
-      callback({ message: err ? "failure" : "success" });
-    });
+      instagramPageCtx.waitForSelector('xpath/' + instagramSelectors.wrongSecurityCode, { timeout: 0 }).then(() => {
+        socket.emit('wrong-security-code')
+      }).catch(() => {
+        // keep empty
+      })
+
+      const loggedIn = await isInstagramLoggedIn(instagramPageCtx)
+      socket.emit('instagram-state-change', 'loading-done')
+      if (!!loggedIn) {
+        socket.emit('instagram-state-change', 'security-code-handled')
+        instagramPageCtx.waitForSelector('xpath/' + instagramSelectors.notNowDiv).then(() => {
+          instagramPageCtx.click('xpath/' + instagramSelectors.notNowDiv).catch(() => {
+            // keep empty
+          })
+        }).catch(() => {
+          // keep empty
+        })
+      }
+    }
+  })
+
+  socket.on('instagram-start-uploading', async (file: string) => {
 
     if (!!instagramPageCtx) {
       await instagramPageCtx.waitForSelector(instagramSelectors.mNewPost).then(async () => {

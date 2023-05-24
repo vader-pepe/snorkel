@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import status from "../../constants/status";
+import status from "@/constants/status";
 import { twitterPageCtx } from "./handling";
-import selectors from "../../constants/index"
-import logger from "../../lib/logger";
+import selectors from "@/constants"
+import logger from "@/lib/logger";
 
 const { twitterSelectors } = selectors
 
@@ -18,7 +18,7 @@ export const twitterLoginFlow = async (req: Request, res: Response) => {
 
     new Promise(async () => {
       if (!!twitterPageCtx) {
-        await twitterPageCtx.waitForXPath(twitterSelectors.mLoginBtn).then(async () => {
+        await twitterPageCtx.waitForSelector('xpath/'+twitterSelectors.mLoginBtn).then(async () => {
           const isLoginBtnExist = await twitterPageCtx.$x(twitterSelectors.mLoginBtn)
           if (!!isLoginBtnExist && isLoginBtnExist.length > 0) {
             const loginBtn = await isLoginBtnExist[0].$$('xpath/' + '../../..')

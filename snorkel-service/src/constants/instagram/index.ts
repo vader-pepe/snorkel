@@ -23,6 +23,7 @@ export const instagramSelectors = {
   goBack: `//a[contains(text(),'Go back')]`,
   turnOnNotifications: `//span[contains(text(),'Turn on notifications')]`,
   notNowBtn: `//button[contains(text(),'Not Now')]`,
+  notNowDiv: `//div[contains(text(),'Not now')]`,
   notNowSaveLoginInfo: `//button[contains(text(),'Not now')]`,
   // this is only the SVG. not clickable
   newPost: `svg[aria-label="New post"]`,
@@ -31,6 +32,7 @@ export const instagramSelectors = {
   mNewPost: `svg[aria-label="Home"]`,
   mPostSpan: `//span[contains(text(),'Post')]`,
   mCancelAddToHome: `//button[contains(text(),'Cancel')]`,
+  wrongSecurityCode: `//p[contains(text(), 'Please check the security code and try again.')]`,
   // mNewPost[1].parentElement.parentElement.parentElement.parentElement.parentElement ==> the a element which is clickable
   mPostType: `div[role="dialog"]`,
   // mPostType.children[0].children[0].children[0].children[0] ==> post

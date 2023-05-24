@@ -4,12 +4,9 @@ import { AddressInfo } from 'net'
 import http from "http"
 import { Server } from "socket.io"
 import { Page } from "puppeteer"
-import puppeteerInstance from "./lib/puppeteer-instance"
-import logger from "./lib/logger"
-import socketInstance from "./lib/socket-instance"
-import initiator from "./initiator"
-
-const { instagramInitiator, facebookInitiator, twitterInitiator } = initiator
+import puppeteerInstance from "@/lib/puppeteer-instance"
+import logger from "@/lib/logger"
+import socketInstance from "@/lib/socket-instance"
 
 const httpServer = http.createServer(app)
 export let page: Page
@@ -31,23 +28,18 @@ puppeteerInstance().then((mainPage) => {
     const { port } = server.address() as AddressInfo
     console.log('server is running on port', port);
   });
+
 }).catch(async (error) => {
   const errorMsg = error.message as string
   logger.error(errorMsg)
 })
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   console.log("user connected")
-
-  new Promise(() => {
-    instagramInitiator()
-    facebookInitiator()
-    twitterInitiator()
-  })
 
   socketInstance(socket)
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('user disconnected');
   });
 })

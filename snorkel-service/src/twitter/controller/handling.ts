@@ -1,17 +1,31 @@
 import { KnownDevices, Page } from "puppeteer";
 import { Socket } from "socket.io";
-import { io, page as mainPage } from "../..";
-import selectors from "../../constants/index"
-
-const { twitterSelectors } = selectors
-
-export let twitterPageCtx: Page
+import { io, page as mainPage } from "@/.";
+import selectors from "@/constants"
 
 const iphoneSe = KnownDevices['iPhone SE']
 
-export const twitterInitiator = async () => {
-  if (!!io && !!mainPage) {
-    new Promise(async () => {
+const { twitterSelectors } = selectors
+export let twitterPageCtx: Page
+let isTwitterCtxCreated = false
+
+async function isTwitterLoggedIn(page: Page) {
+  let isLoggedin = false
+
+  await page.waitForSelector(twitterSelectors.mNewTweet, { timeout: 1000 }).then(() => {
+    isLoggedin = true
+  }).catch(() => {
+    // keep empty
+  })
+
+  return isLoggedin
+}
+
+const twitterHandler = async (socket: Socket) => {
+  new Promise(async () => {
+    io.emit('twitter-state-change', 'loading')
+    if (!isTwitterCtxCreated) {
+      isTwitterCtxCreated = true
       const browser = mainPage.browser()
       // page context for twitter
       const page = await browser.newPage()
@@ -22,41 +36,25 @@ export const twitterInitiator = async () => {
 
       twitterPageCtx = page
 
-      io.emit('twitter-loading')
-      const isLoggedin = await isTwitterLoggedIn(page)
-      if (isLoggedin) {
-        io.emit('twitter-logged-in')
-      } else {
-        io.emit('twitter-need-log-in')
-      }
-      io.emit('twitter-loading-done')
-
-      await page.waitForXPath(twitterSelectors.mNotNow).then(async () => {
-        await page.click('xpath/' + twitterSelectors.mNotNow)
+      page.waitForSelector('xpath/' + twitterSelectors.mNotNow).then(() => {
+        page.click('xpath/' + twitterSelectors.mNotNow)
       }).catch(() => {
         // keep empty
       })
 
-    })
-  } else {
-    throw ('socket.io or browesr instance not found!')
-  }
+    }
 
-  async function isTwitterLoggedIn(page: Page) {
-    let isLoggedin = false
+    if (!!twitterPageCtx) {
+      const isLoggedin = await isTwitterLoggedIn(twitterPageCtx)
+      io.emit('twitter-state-change', 'loading-done')
+      if (isLoggedin) {
+        io.emit('twitter-state-change', 'logged-in')
+      } else {
+        io.emit('twitter-state-change', 'need-log-in')
+      }
+    }
 
-    await page.waitForSelector(twitterSelectors.mNewTweet).then(() => {
-      isLoggedin = true
-    }).catch(() => {
-      // keep empty
-    })
-
-    return isLoggedin
-  }
-
-}
-
-const twitterHandler = async (socket: Socket) => {
+  })
 
 };
 
