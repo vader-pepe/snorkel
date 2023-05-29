@@ -15,10 +15,10 @@ let isInstagramCtxCreated = false
 export async function isInstagramLoggedIn(page: Page) {
   let isLoggedin = false
 
-  await page.waitForSelector('xpath/' + instagramSelectors.loginBtn, { timeout: 1500 }).then(() => {
-    isLoggedin = false
-  }).catch(() => {
+  await page.waitForSelector('xpath/' + instagramSelectors.mNewPost, { timeout: 1500 }).then(() => {
     isLoggedin = true
+  }).catch(() => {
+    // keep empty
   })
 
   page.waitForSelector('xpath/' + instagramSelectors.mCancelAddToHome).then(() => {
@@ -33,6 +33,12 @@ export async function isInstagramLoggedIn(page: Page) {
     page.click('xpath/' + instagramSelectors.notNowBtn).catch(() => {
       // keep empty
     })
+  }).catch(() => {
+    // keep empty
+  })
+
+  page.waitForSelector(instagramSelectors.securityCode).then(() => {
+    io.emit('instagram-security-code')
   }).catch(() => {
     // keep empty
   })

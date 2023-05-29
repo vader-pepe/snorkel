@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 const router = express.Router();
 
-const storage = path.resolve('./src/storage/instagram')
+const storage = path.resolve('./src/storage/')
 
 const disk = multer.diskStorage({
   destination: (_req, _file, cb) => {
