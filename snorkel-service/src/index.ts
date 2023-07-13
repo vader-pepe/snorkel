@@ -1,5 +1,3 @@
+import 'dotenv/config'
 
-
-export default {
-  Client: 
-}
+console.log(process.env.AYAM)
