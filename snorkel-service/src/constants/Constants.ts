@@ -19,7 +19,3 @@ export const DefaultOptions = {
   bypassCSP: false,
   proxyAuthentication: undefined,
 };
-
-export const Events = {
-  READY: 'ready',
-}

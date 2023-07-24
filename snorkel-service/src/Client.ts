@@ -1,32 +1,33 @@
-import { EventEmitter } from "stream";
-import Util from "./utils/Utils";
-import { DefaultOptions, Events } from "./constants/Constants";
-import puppeteer, { Browser, HTTPResponse, Page } from "puppeteer";
 import 'dotenv/config'
+import { EventEmitter } from "events";
+import Util from "./utils/Utils";
+import { DefaultOptions } from "./constants/Constants";
+import InterfaceController from "./InterfaceController";
+import puppeteer, { Browser, Page } from "puppeteer";
+import { EventValues, Events } from "./constants/Events";
+import TypedEmitter from "typed-emitter"
 
 type PupBrowser = Browser | null
-type PupPage = Page | null
+export type PupPage = Page | null
 type Options = typeof DefaultOptions
+type ClientEvents = {
+  [K in EventValues]: () => void
+}
 
-class Client extends EventEmitter {
+class Client extends (EventEmitter as new () => TypedEmitter<ClientEvents>) {
   options: Options
   pupBrowser: PupBrowser
   pupPage: PupPage
-  platforms: {
-    site: string,
-    instance: HTTPResponse | null
-  }[]
+  controller: InterfaceController
 
-  constructor(options: Options) {
+  constructor(options?: Options) {
     super();
 
     this.options = Util.mergeDefault(DefaultOptions, options);
     this.pupBrowser = null;
     this.pupPage = null;
-
-
+    Util.setFfmpegPath(this.options.ffmpegPath);
   }
-
 
   /**
  * Sets up events and requirements, kicks off authentication request
@@ -55,19 +56,17 @@ class Client extends EventEmitter {
 
     this.pupBrowser = browser;
     this.pupPage = page;
+    this.controller = new InterfaceController(page)
 
-    for (let i = 0; i < this.platforms.length; i++) {
-      this.platforms[i].instance = await page.goto(this.platforms[i].site, {
-        waitUntil: 'load',
-        timeout: 0,
-        referer: 'https://whatsapp.com/'
-      });
-    }
+    // remove the first page
+    await page.close()
 
+    /**
+     * Emitted when the client has initialized and is ready.
+     * @event Client#ready
+     */
     this.emit(Events.READY);
-
   }
-
 }
 
 export default Client
