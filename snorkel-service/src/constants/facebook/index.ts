@@ -8,7 +8,8 @@ export const facebookSelectors = {
   //TODO: get to automate the input from the web (Desktop version)
   postBtn: `div[aria-label='Post'][role='button'][tabindex='0']'`,
   // facebook mobile
-  mEmailField: `input#m_login_email[type="email"]`,
+  mEmailField: `input[type="email"][data-sigil="m_login_email"]`,
+  mWrongPassword: `//div[contains(text(), "The password that you entered is incorrect, but we can help you get back in to your account")]`,
   mPassField: `input#m_login_password[name="pass"][type="password"][data-sigil="password-plain-text-toggle-input"]`,
   mLoginBtn: `button[name="login"][type="button"]`,
   mNotNow: `a[role="button"][target="_self"][data-sigil="touchable"]`,
@@ -17,4 +18,5 @@ export const facebookSelectors = {
   mStatusFieldXpath: `//div[contains(text(),"What's on your mind?")]`,
   mPhotoBtn: `button[data-sigil="touchable hidden-button photo-button"][type="button"]`,
   mPostBtn: `div > button[type="submit"][value="Post"][data-sigil="touchable submit_composer"]`,
+  mNewPhotosPost: `button[data-sigil="touchable hidden-button photo-button"]`,
 }
