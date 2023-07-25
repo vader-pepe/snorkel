@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { io, page as mainPage } from "@/.";
+import { page as mainPage } from "@/.";
 import { KnownDevices, Page } from "puppeteer";
 import logger from "@/lib/logger";
 import selectors from "@/constants"

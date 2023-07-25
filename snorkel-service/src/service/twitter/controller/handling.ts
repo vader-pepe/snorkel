@@ -9,7 +9,7 @@ const { twitterSelectors } = selectors
 export let twitterPageCtx: Page
 let isTwitterCtxCreated = false
 
-async function isTwitterLoggedIn(page: Page) {
+export async function isTwitterLoggedIn(page: Page) {
   let isLoggedin = false
 
   await page.waitForSelector(twitterSelectors.mNewTweet, { timeout: 1000 }).then(() => {

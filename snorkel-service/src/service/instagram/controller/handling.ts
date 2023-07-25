@@ -3,7 +3,7 @@ import selectors from "@/constants"
 import logger from "@/lib/logger";
 import path from "path";
 import { KnownDevices, Page } from "puppeteer";
-import { io, page as mainPage } from "@/.";
+import { page as mainPage } from "@/.";
 
 const iphoneSe = KnownDevices['iPhone SE']
 const storage = path.resolve('./src/storage/instagram')
@@ -15,10 +15,10 @@ let isInstagramCtxCreated = false
 export async function isInstagramLoggedIn(page: Page) {
   let isLoggedin = false
 
-  await page.waitForSelector('xpath/' + instagramSelectors.loginBtn, { timeout: 1500 }).then(() => {
-    isLoggedin = false
-  }).catch(() => {
+  await page.waitForSelector('xpath/' + instagramSelectors.mNewPost, { timeout: 1500 }).then(() => {
     isLoggedin = true
+  }).catch(() => {
+    // keep empty
   })
 
   page.waitForSelector('xpath/' + instagramSelectors.mCancelAddToHome).then(() => {
@@ -37,12 +37,17 @@ export async function isInstagramLoggedIn(page: Page) {
     // keep empty
   })
 
+  page.waitForSelector(instagramSelectors.securityCode).then(() => {
+    io.emit('instagram-security-code')
+  }).catch(() => {
+    // keep empty
+  })
+
   return isLoggedin
 }
 
 const instagramHandler = (socket: Socket) => {
   new Promise(async () => {
-    io.emit('instagram-state-change', 'loading')
     if (!isInstagramCtxCreated) {
       isInstagramCtxCreated = true
       const browser = mainPage.browser()
@@ -58,7 +63,6 @@ const instagramHandler = (socket: Socket) => {
 
     if (!!instagramPageCtx) {
       const isLoggedin = await isInstagramLoggedIn(instagramPageCtx);
-      io.emit('instagram-state-change', 'loading-done')
       if (isLoggedin) {
         io.emit('instagram-state-change', 'logged-in')
       } else {
@@ -70,7 +74,6 @@ const instagramHandler = (socket: Socket) => {
   // security code input handling
   socket.on('instagram-security-code-input', async (code: string) => {
     if (!!instagramPageCtx) {
-      socket.emit('instagram-state-change', 'loading')
       await instagramPageCtx.click(instagramSelectors.securityCode, { count: 3 })
       await instagramPageCtx.keyboard.press('Backspace')
       await instagramPageCtx.type(instagramSelectors.securityCode, code)
@@ -85,7 +88,6 @@ const instagramHandler = (socket: Socket) => {
       })
 
       const loggedIn = await isInstagramLoggedIn(instagramPageCtx)
-      socket.emit('instagram-state-change', 'loading-done')
       if (!!loggedIn) {
         socket.emit('instagram-state-change', 'security-code-handled')
         instagramPageCtx.waitForSelector('xpath/' + instagramSelectors.notNowDiv).then(() => {

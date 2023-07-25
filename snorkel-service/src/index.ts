@@ -1,45 +1,42 @@
-import app from "./app"
-import config from "./config"
-import { AddressInfo } from 'net'
-import http from "http"
-import { Server } from "socket.io"
-import { Page } from "puppeteer"
-import puppeteerInstance from "@/lib/puppeteer-instance"
-import logger from "@/lib/logger"
-import socketInstance from "@/lib/socket-instance"
+import Client from "./Client";
 
-const httpServer = http.createServer(app)
-export let page: Page
+function main() {
+  const client = new Client()
+  client.initialize()
+  client.on('ready', async ({ facebook, instagram, twitter }) => {
+    facebook.on('facebook-state-change', async state => {
+      console.log('fb', state)
+    })
 
-export const io = new Server(httpServer, {
-  cors: {
-    origin: 'http://localhost:3000',
-  }
-})
+    instagram.on('instagram-state-change', async state => {
+      console.log('insta', state)
+      if (state === 'instagram-need-security-code') {
+        // input your 6 digit code here
+        // await instagram.securityCodeInput('123456')
+      }
+    })
 
-const PORT = process.env.PORT || config.port;
+    twitter.on('twitter-state-change', state => {
+      console.log('twt', state)
+    })
 
-puppeteerInstance().then((mainPage) => {
-  page = mainPage
-  logger.info('Browser initialized')
-  // close the extra page
-  page.close()
-  const server = httpServer.listen(PORT, async () => {
-    const { port } = server.address() as AddressInfo
-    console.log('server is running on port', port);
-  });
+    const facebookIsLoggedIn = await facebook.isLoggedIn()
+    if (!facebookIsLoggedIn) {
+      // await facebook.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
+    }
 
-}).catch(async (error) => {
-  const errorMsg = error.message as string
-  logger.error(errorMsg)
-})
+    const instagramIsLoggedin = await instagram.isLoggedIn()
+    if (!instagramIsLoggedin) {
+      // await instagram.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
+    }
 
-io.on("connection", async (socket) => {
-  console.log("user connected")
+    const twitterIsLoggedIn = await twitter.isLoggedIn()
+    if (!twitterIsLoggedIn) {
+      // await twitter.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
+    }
 
-  socketInstance(socket)
+  })
 
-  socket.on('disconnect', async () => {
-    console.log('user disconnected');
-  });
-})
+}
+
+main()

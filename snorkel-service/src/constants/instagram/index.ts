@@ -1,7 +1,7 @@
 export const instagramSelectors = {
-  emailField: `input[aria-label="Phone number, username or email address"]`,
+  emailField: `input[aria-label="Phone number, username, or email"]`,
   passwordField: `input[aria-label="Password"]`,
-  loginBtn: `//div[contains(text(),'Log In')]`,
+  loginBtn: `//div[contains(text(),'Log in')]`,
   // loginBtn.parentElement is clickable
   loginSubmitBtn: `button[type="submit"]`,
   verifCodeInput: `input[aria-describedby="verificationCodeDescription"][aria-label="Security code"][name="verificationCode"]`,
@@ -17,7 +17,7 @@ export const instagramSelectors = {
   // verifMethods[1] ==> email
   sendVerifCode: `//button[contains(text(),'Send Security Code')]`,
   logoutVerif: `//a[contains(text(),'Log out')]`,
-  securityCode: `input[aria-label="Security code"]`,
+  securityCode: `input[aria-label="Security Code"]`,
   submitSecurityCode: `//button[contains(text(),'Submit')]`,
   getNewSecurityCode: `//a[contains(text(),'Get a new one')]`,
   goBack: `//a[contains(text(),'Go back')]`,
