@@ -1,13 +1,12 @@
-import 'dotenv/config'
 import Util from "./utils/Utils";
 import { DefaultOptions } from "./constants/Constants";
 import InterfaceController from "./InterfaceController";
 import puppeteer, { Browser, Page } from "puppeteer";
 import { EventValues, Events } from "./constants/Events";
 import { MyEventEmitter } from './utils/CustomEventEmitter';
-import { FacebookController, FacebookEvents } from './facebook/Controller';
-import { InstagramController, InstagramEvents } from './instagram/Controller';
-import { TwitterController, TwitterEvents } from './twitter/Controller';
+import { FacebookController } from './facebook/Controller';
+import { InstagramController } from './instagram/Controller';
+import { TwitterController } from './twitter/Controller';
 
 type PupBrowser = Browser | null
 export type PupPage = Page | null
@@ -15,7 +14,7 @@ type Options = typeof DefaultOptions
 type Platforms = { facebook: FacebookController, instagram: InstagramController, twitter: TwitterController }
 type ClientEvents = {
   [K in EventValues]: (arg: Platforms) => void
-} & FacebookEvents & InstagramEvents & TwitterEvents
+}
 
 class Client extends MyEventEmitter<ClientEvents> {
   options: Options

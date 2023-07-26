@@ -4,7 +4,7 @@ type Options = PuppeteerLaunchOptions & ConnectOptions
 
 export const DefaultOptions = {
   puppeteer: {
-    headless: true,
+    headless: false,
     defaultViewport: null,
   } as Options,
   webVersion: '2.2322.15',

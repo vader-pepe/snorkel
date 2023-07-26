@@ -1,9 +1,10 @@
 export const facebookSelectors = {
   // disable "Get alerts about unrecognised logins" first
-  emailField: `[type='text'][name='email'][id='email'][data-testid='royal_email']`,
+  emailField: `input[type='text'][name='email'][id='email'][data-testid='royal_email']`,
   passField: `[type='password'][name='pass'][id='pass'][data-testid='royal_pass']`,
   loginBtn: `[name='login'][data-testid='royal_login_button'][type='submit']`,
-  newPost: `div[aria-label='Create a post'][role='region'] > div > div`,
+  newPost: `//span[contains(text(),"What's on your mind, Ihsan?")]`,
+  postField: `div[aria-label="What's on your mind, Ihsan?"]`,
   newPostPopup: `div[role='textbox'][spellcheck='true'][tabindex='0'][data-lexical-editor='true'][contenteditable='true']`,
   //TODO: get to automate the input from the web (Desktop version)
   postBtn: `div[aria-label='Post'][role='button'][tabindex='0']'`,

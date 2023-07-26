@@ -10,7 +10,6 @@ const storage = path.resolve('./src/storage')
 
 const twitterState = {
   ...State,
-  POST_DONE: 'post-done',
 } as const
 
 type StateKeys = keyof typeof twitterState;

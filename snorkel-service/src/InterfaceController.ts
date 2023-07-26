@@ -36,7 +36,7 @@ class InterfaceController {
 
     await Promise.all(platforms.map(async platform => {
       const page = await browser.newPage()
-      await page.emulate(iphoneSe)
+      if (platform === 'facebook') await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1')
       await page.goto(`https://www.${platform}.com`, {
         waitUntil: 'domcontentloaded'
       })

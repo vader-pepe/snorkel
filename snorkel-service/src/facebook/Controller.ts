@@ -1,16 +1,17 @@
 import selectors from "@/constants";
-import { Page } from "puppeteer";
+import { KeyInput, KnownDevices, Page } from "puppeteer";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
-const { facebookSelectors } = selectors
 import path from "path";
+import { sleep } from "@/utils";
 
 const STATE_CONSTANT = 'facebook-state-change'
 const storage = path.resolve('./src/storage')
+const { facebookSelectors } = selectors
+const iphoneSe = KnownDevices['iPhone SE']
 
 const facebookState = {
   ...State,
-  POST_DONE: 'post-done',
 } as const
 
 type StateKeys = keyof typeof facebookState;
@@ -26,6 +27,10 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
   constructor(context: Page) {
     super()
     this.context = context
+  }
+
+  wildCard() {
+
   }
 
   async newPhotosPost(media: string, newStatus?: string) {
@@ -148,4 +153,5 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       this.emit(STATE_CONSTANT, facebookState.NEED_LOG_IN)
     }
   }
+
 }

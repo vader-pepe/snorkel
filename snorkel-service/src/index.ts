@@ -35,6 +35,7 @@ function main() {
       // await twitter.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
+    facebook.wildCard()
   })
 
 }

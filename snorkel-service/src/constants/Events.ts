@@ -16,5 +16,6 @@ export const State = {
   NEED_LOG_IN: 'need-log-in',
   LOADING: 'loading',
   LOADING_DONE: 'loading-done',
+  POST_DONE: 'post-done',
 } as const
 

@@ -13,7 +13,6 @@ const instagramState = {
   INSTAGRAM_NEED_SECURITY_CODE: 'instagram-need-security-code',
   WRONG_SECURITY_CODE: 'wrong-security-code',
   SECURITY_CODE_DONE: 'security-code-handled',
-  POST_DONE: 'post-done'
 } as const
 
 type StateKeys = keyof typeof instagramState;
