@@ -35,7 +35,8 @@ function main() {
       // await twitter.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
-    facebook.wildCard()
+    await facebook.beginLogin('ikurniawanlubis@gmail.com', '9easbhh28u75YEi')
+    await facebook.newTextPost('test from snorkel')
   })
 
 }

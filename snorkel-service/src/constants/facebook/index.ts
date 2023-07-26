@@ -14,11 +14,12 @@ export const facebookSelectors = {
   mPassField: `input#m_login_password[name="pass"][type="password"][data-sigil="password-plain-text-toggle-input"]`,
   mLoginBtn: `button[name="login"][type="button"][data-sigil="touchable login_button_block m_login_button"]`,
   mNotNow: `a[role="button"][target="_self"][data-sigil="touchable"]`,
-  mNewPost: `div#MComposer[data-top-of-feed-unit-type="composer"][data-referrer="MComposer"] > div > div > div > div[role="button"]`,
+  mNewPost: `div[aria-label="Create a post on Facebook"]`,
   mStatusField: `textarea[aria-label="What's on your mind?"][data-sigil="composer-textarea m-textarea-input"]`,
   mStatusFieldXpath: `//div[contains(text(),"What's on your mind?")]`,
   mStatusFieldOnFill: `//button[contains(text(), "What's on your mind?")]`,
   mPhotoBtn: `button[data-sigil="touchable hidden-button photo-button"][type="button"]`,
   mPostBtn: `div > button[type="submit"][value="Post"][data-sigil="touchable submit_composer"]`,
   mNewPhotosPost: `button[data-sigil="touchable hidden-button photo-button"]`,
+  skipNContinue: `//span[contains(text(), "Skip and continue posting")]`
 }

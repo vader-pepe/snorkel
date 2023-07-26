@@ -88,25 +88,24 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }
 
     await this.context.waitForSelector(facebookSelectors.mNewPost)
+    await this.context.click(facebookSelectors.mNewPost)
+    await this.context.mouse.click(200, 200)
+    await this.context.waitForSelector('textarea')
 
-    await Promise.all([
-      this.context.waitForNavigation({
-        waitUntil: 'load'
-      }),
-      this.context.click(facebookSelectors.mNewPost)
-    ])
+    await this.context.type('textarea', newStatus, { delay: 100 })
+    await this.context.mouse.click(275, 85)
+    await this.context.mouse.click(185, 550)
 
-    await this.context.type(facebookSelectors.mStatusField, newStatus, { delay: 100 })
-    // weird Facebook behaviour
     await this.context.evaluate((selector) => {
-      let btn = document.querySelector(selector) as HTMLButtonElement
-      btn.click()
-    }, facebookSelectors.mPostBtn)
+      // @ts-ignore
+      function getElementByXpath(path) {
+        return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      }
+      const skip = getElementByXpath(selector)
+      // @ts-ignore
+      skip.parentElement.parentElement.click()
 
-    // dialog leaving Facebook will appear for no reason
-    this.context.on('dialog', async dialog => {
-      await dialog.dismiss();
-    });
+    }, facebookSelectors.skipNContinue)
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
 
@@ -133,7 +132,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
     await Promise.all([
       this.context.waitForNavigation({
-        waitUntil: 'load'
+        waitUntil: 'load',
       }),
       this.context.click(facebookSelectors.mLoginBtn)
     ])
