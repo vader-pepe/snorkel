@@ -5,9 +5,8 @@ import { InstagramController } from "./instagram/Controller";
 import { TwitterController } from "./twitter/Controller";
 import config from "./config";
 
+const iPhoneSE = KnownDevices['iPhone SE']
 const { platforms } = config
-
-const iphoneSe = KnownDevices['iPhone SE']
 
 export type IPlatfroms = 'facebook' | 'instagram' | 'twitter'
 
@@ -36,7 +35,10 @@ class InterfaceController {
 
     await Promise.all(platforms.map(async platform => {
       const page = await browser.newPage()
-      if (platform === 'facebook') await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1')
+      if (platform === 'facebook') {
+        await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 Safari/600.1.4')
+        await page.emulate(iPhoneSE)
+      }
       await page.goto(`https://www.${platform}.com`, {
         waitUntil: 'domcontentloaded'
       })

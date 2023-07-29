@@ -1,6 +1,6 @@
 export const twitterSelectors = {
   mNotNow: `//span[contains(text(),'Not now')]`,
-  mLoginBtn: `//span[contains(text(),'Log in')]`,
+  mLoginBtn: `a[data-testid="loginButton"]`,
   // mLoginBtn.parentElement.parentElement.parentElement ==> clickable
   mUsernameField: `input[autocomplete="username"]`,
   mNextStep: `//span[contains(text(),'Next')]`,

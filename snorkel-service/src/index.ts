@@ -1,7 +1,10 @@
+import prompt from "prompt"
+
 import Client from "./Client";
 
 function main() {
   const client = new Client()
+
   client.initialize()
   client.on('ready', async ({ facebook, instagram, twitter }) => {
     facebook.on('facebook-state-change', async state => {
@@ -10,7 +13,11 @@ function main() {
 
     instagram.on('instagram-state-change', async state => {
       console.log('insta', state)
-      if (state === 'instagram-need-security-code') {
+      if (state === 'need-security-code') {
+        prompt.start()
+        prompt.get(['code'], async function(_err, result) {
+          await instagram.securityCodeInput(result.code as unknown as `${number}`)
+        })
         // input your 6 digit code here
         // await instagram.securityCodeInput('123456')
       }
@@ -35,8 +42,6 @@ function main() {
       // await twitter.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
-    await facebook.beginLogin('ikurniawanlubis@gmail.com', '9easbhh28u75YEi')
-    await facebook.newTextPost('test from snorkel')
   })
 
 }

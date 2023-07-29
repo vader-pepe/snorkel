@@ -1,7 +1,6 @@
 import { IPlatfroms } from "./InterfaceController";
 
 const config = {
-  port: 5000,
   platforms: [
     'instagram',
     'facebook',

@@ -1,12 +1,15 @@
-import { PuppeteerLaunchOptions, ConnectOptions } from "puppeteer";
+import path from "path";
+import { ConnectOptions, PuppeteerLaunchOptions } from "puppeteer";
 
-type Options = PuppeteerLaunchOptions & ConnectOptions
+const userDataDir = path.resolve('./userDataDir')
 
-export const DefaultOptions = {
+export const defaultOptions = {
   puppeteer: {
-    headless: false,
+    headless: 'new',
     defaultViewport: null,
-  } as Options,
+    userDataDir
+  } as PuppeteerLaunchOptions,
+  connectOpts: {} as ConnectOptions,
   webVersion: '2.2322.15',
   webVersionCache: {
     type: 'local',
@@ -19,3 +22,5 @@ export const DefaultOptions = {
   bypassCSP: false,
   proxyAuthentication: undefined,
 };
+
+export type DefaultOptionsIF = typeof defaultOptions

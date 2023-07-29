@@ -25,6 +25,10 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
   constructor(context: Page) {
     super()
     this.context = context
+    this.context.evaluate(`
+        function getElementByXpath(path) {
+          return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        }`)
   }
 
   async newMediaPost(media: string, post?: string) {
@@ -58,11 +62,7 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
       await this.context.type(twitterSelectors.mComposeTweet, post)
       await this.context.evaluate((selector) => {
         // @ts-ignore
-        function getElementByXpath(path) {
-          return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        }
-
-        const sendTwtBtn = getElementByXpath(selector)
+        const sendTwtBtn = window.getElementByXpath(selector)
         // @ts-ignore
         sendTwtBtn.parentElement.parentElement.parentElement.click()
       }, twitterSelectors.mSendTweet)
@@ -90,11 +90,7 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
     await this.context.type(twitterSelectors.mComposeTweet, post)
     await this.context.evaluate((selector) => {
       // @ts-ignore
-      function getElementByXpath(path) {
-        return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-      }
-
-      const sendTwtBtn = getElementByXpath(selector)
+      const sendTwtBtn = window.getElementByXpath(selector)
       // @ts-ignore
       sendTwtBtn.parentElement.parentElement.parentElement.click()
     }, twitterSelectors.mSendTweet)
@@ -105,13 +101,15 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
 
   async beginLogin(username: string, password: string) {
     this.emit(STATE_CONSTANT, State.LOADING)
+    await Promise.all([
+      this.context.waitForNavigation(),
+      this.context.click(twitterSelectors.mLoginBtn)
+    ])
+    await this.context.waitForSelector(twitterSelectors.mUsernameField)
     await this.context.type(twitterSelectors.mUsernameField, username)
-    this.context.evaluate((selector) => {
+    await this.context.evaluate((selector) => {
       // @ts-ignore
-      function getElementByXpath(path) {
-        return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-      }
-      const nextBtn = getElementByXpath(selector)
+      const nextBtn = window.getElementByXpath(selector)
       // @ts-ignore
       nextBtn.parentElement.parentElement.parentElement.click()
     }, twitterSelectors.mNextStep)
@@ -123,11 +121,7 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
       this.context.waitForNavigation(),
       this.context.evaluate((selector) => {
         // @ts-ignore
-        function getElementByXpath(path) {
-          return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        }
-
-        const loginBtn = getElementByXpath(selector)
+        const loginBtn = window.getElementByXpath(selector)
         // @ts-ignore
         loginBtn.parentElement.parentElement.parentElement.click()
       }, twitterSelectors.mLoginBtn)

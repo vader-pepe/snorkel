@@ -10,7 +10,7 @@ const storage = path.resolve('./src/storage')
 
 const instagramState = {
   ...State,
-  INSTAGRAM_NEED_SECURITY_CODE: 'instagram-need-security-code',
+  INSTAGRAM_NEED_SECURITY_CODE: 'need-security-code',
   WRONG_SECURITY_CODE: 'wrong-security-code',
   SECURITY_CODE_DONE: 'security-code-handled',
 } as const
@@ -28,37 +28,43 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
   constructor(context: Page) {
     super()
     this.context = context
+    this.context.evaluate(`function getElementByXpath(path) {
+        return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      }`)
+  }
+
+  wildcard() {
+
   }
 
   async newPost(media: string, post?: string) {
     await this.context.waitForSelector(instagramSelectors.mNewPost).then(async () => {
-
-      await this.context.evaluate((selector) => {
-        const allHome = Array.from(document.querySelectorAll(selector))
-        // this is the best I can come with
-        allHome[1]?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.click()
-
-      }, instagramSelectors.mNewPost)
-
-      const [fileChooser] = await Promise.all([
-        this.context.waitForFileChooser(),
-        this.context.evaluate((selector) => {
-          function getElementByXpath(path: string) {
-            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-          }
-
-          const post = getElementByXpath(selector)
-          // this is the best I can come with
-          post?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.click()
-
-        }, instagramSelectors.mPostSpan)
-      ])
-
-      await fileChooser.accept([`${storage}/${media}`]);
-
     }).catch(() => {
       throw new Error('Upload btn not found!')
     })
+
+    await this.context.evaluate((selector) => {
+
+      const allHome = Array.from(document.querySelectorAll(selector))
+      // this is the best I can come with
+      allHome[1]?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.click()
+
+    }, instagramSelectors.mNewPost)
+
+    const [fileChooser] = await Promise.all([
+      this.context.waitForFileChooser(),
+      this.context.evaluate((selector) => {
+
+        // @ts-ignore
+        const post = window.getElementByXpath(selector)
+        // this is the best I can come with
+        post?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.click()
+
+      }, instagramSelectors.mPostSpan)
+    ])
+
+    await fileChooser.accept([`${storage}/${media}`]);
+
   }
 
   async isLoggedIn() {
@@ -86,51 +92,43 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       // keep empty
     })
 
-    this.context.waitForSelector(instagramSelectors.securityCode).then(() => {
-      this.emit(STATE_CONSTANT, instagramState.INSTAGRAM_NEED_SECURITY_CODE)
+    return isLoggedin
+  }
+
+  // important: your account will stuck at security code!
+  // so you have to call securityCodeInput() after this one!
+  async beginLogin(username: string, password: string) {
+    let needSecurityCode = false
+    this.emit(STATE_CONSTANT, instagramState.LOADING)
+    await this.context.waitForSelector('input[aria-label="Phone number, username, or email"]').catch(() => {
+      throw new Error('No Element found!')
+    })
+
+    // login process
+    await this.context.type(`input[aria-label="Phone number, username, or email"]`, username)
+    await this.context.type(`aria-label="Password"`, password)
+
+    await this.context.click(instagramSelectors.loginSubmitBtn)
+
+    await this.context.waitForSelector(instagramSelectors.securityCode).then(async () => {
+      needSecurityCode = true
+      await this.context.click(`input[type="checkbox"]`)
     }).catch(() => {
       // keep empty
     })
 
-    return isLoggedin
-  }
-
-  async beginLogin(username: string, password: string) {
-    this.emit(STATE_CONSTANT, instagramState.LOADING)
-    const isLoginBtnExist = await this.context.$x(instagramSelectors.loginBtn)
-    if (!!isLoginBtnExist && isLoginBtnExist.length > 0) {
-      // only the parent is clickable
-      const loginBtn = await isLoginBtnExist[0].$$('xpath/' + '..')
-      loginBtn[0].click()
-
-      // login process
-      await this.context.waitForSelector(instagramSelectors.emailField)
-      await this.context.type(instagramSelectors.emailField, username)
-      await this.context.type(instagramSelectors.passwordField, password)
-
-      await Promise.all([
-        this.context.waitForNavigation({
-          waitUntil: 'load'
-        }),
-        this.context.click(instagramSelectors.loginSubmitBtn)
-      ])
-
-      await this.context.waitForSelector(instagramSelectors.securityCode).then(() => {
+    const isLoggedin = await this.isLoggedIn();
+    this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
+    if (isLoggedin) {
+      this.emit(STATE_CONSTANT, instagramState.LOGGED_IN)
+    } else {
+      if (needSecurityCode) {
         this.emit(STATE_CONSTANT, instagramState.INSTAGRAM_NEED_SECURITY_CODE)
-      }).catch(() => {
-        // logger.info('No security code needed')
-      })
-
-      const isLoggedin = await this.isLoggedIn();
-      this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
-      if (isLoggedin) {
-        this.emit(STATE_CONSTANT, instagramState.LOGGED_IN)
       } else {
         this.emit(STATE_CONSTANT, instagramState.NEED_LOG_IN)
       }
-    } else {
-      throw new Error('Element not found!')
     }
+
   }
 
   // 6 digit numerical code

@@ -14,7 +14,7 @@ export const facebookSelectors = {
   mPassField: `input#m_login_password[name="pass"][type="password"][data-sigil="password-plain-text-toggle-input"]`,
   mLoginBtn: `button[name="login"][type="button"][data-sigil="touchable login_button_block m_login_button"]`,
   mNotNow: `a[role="button"][target="_self"][data-sigil="touchable"]`,
-  mNewPost: `div[aria-label="Create a post on Facebook"]`,
+  mNewPost: `div[role="button"]`,
   mStatusField: `textarea[aria-label="What's on your mind?"][data-sigil="composer-textarea m-textarea-input"]`,
   mStatusFieldXpath: `//div[contains(text(),"What's on your mind?")]`,
   mStatusFieldOnFill: `//button[contains(text(), "What's on your mind?")]`,
