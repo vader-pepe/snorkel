@@ -1,14 +1,12 @@
 import selectors from "@/constants";
-import { KeyInput, KnownDevices, Page } from "puppeteer";
+import { Page } from "puppeteer";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import path from "path";
-import { sleep } from "@/utils";
 
 const STATE_CONSTANT = 'facebook-state-change'
 const storage = path.resolve('./src/storage')
 const { facebookSelectors } = selectors
-const iphoneSe = KnownDevices['iPhone SE']
 
 const facebookState = {
   ...State,
