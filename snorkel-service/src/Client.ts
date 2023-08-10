@@ -1,21 +1,24 @@
-import 'dotenv/config'
-import Util from "./utils/Utils";
-import { DefaultOptions } from "./constants/Constants";
-import InterfaceController from "./InterfaceController";
 import puppeteer, { Browser, Page } from "puppeteer";
+import path from "path";
+import fs from "fs/promises"
+
+import Util from "./utils/Utils";
+import { defaultOptions } from "./constants/Constants";
+import InterfaceController from "./InterfaceController";
 import { EventValues, Events } from "./constants/Events";
 import { MyEventEmitter } from './utils/CustomEventEmitter';
-import { FacebookController, FacebookEvents } from './facebook/Controller';
-import { InstagramController, InstagramEvents } from './instagram/Controller';
-import { TwitterController, TwitterEvents } from './twitter/Controller';
+import { FacebookController } from './facebook/Controller';
+import { InstagramController } from './instagram/Controller';
+import { TwitterController } from './twitter/Controller';
+const userDataDir = path.resolve('./userDataDir')
 
 type PupBrowser = Browser | null
 export type PupPage = Page | null
-type Options = typeof DefaultOptions
+type Options = typeof defaultOptions
 type Platforms = { facebook: FacebookController, instagram: InstagramController, twitter: TwitterController }
 type ClientEvents = {
   [K in EventValues]: (arg: Platforms) => void
-} & FacebookEvents & InstagramEvents & TwitterEvents
+}
 
 class Client extends MyEventEmitter<ClientEvents> {
   options: Options
@@ -26,7 +29,7 @@ class Client extends MyEventEmitter<ClientEvents> {
   constructor(options?: Options) {
     super();
 
-    this.options = Util.mergeDefault(DefaultOptions, options);
+    this.options = Util.mergeDefault(defaultOptions, options);
     this.pupBrowser = null;
     this.pupPage = null;
     Util.setFfmpegPath(this.options.ffmpegPath);
@@ -36,10 +39,14 @@ class Client extends MyEventEmitter<ClientEvents> {
     let browser: PupBrowser
     let page: PupPage
 
-    const puppeteerOpts = this.options.puppeteer;
+    // to mitigate bug https://github.com/puppeteer/puppeteer/issues/10517
+    await fs.unlink(`${userDataDir}/SingletonLock`).catch(() => { })
 
-    if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
-      browser = await puppeteer.connect(puppeteerOpts);
+    const puppeteerOpts = this.options.puppeteer;
+    const browserConnectOpts = this.options.connectOpts
+
+    if (browserConnectOpts && browserConnectOpts.browserWSEndpoint) {
+      browser = await puppeteer.connect(browserConnectOpts);
       page = await browser.newPage();
     } else {
       const browserArgs = [...(puppeteerOpts.args || [])];
