@@ -1,4 +1,3 @@
-// eslint-disable-next-line
 export const instagramSelectors = {
   emailField: `//input[@aria-label[
   contains(
@@ -42,30 +41,41 @@ export const instagramSelectors = {
   )
 ]]`,
   securityCode: `input[aria-label="Security Code"]`,
-  submitSecurityCode: `//button[contains(text(),'Submit')]`,
+  submitSecurityCode: `//button[text()[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'submit'
+  )]]`,
   getNewSecurityCode: `//a[contains(text(),'Get a new one')]`,
   goBack: `//a[contains(text(),'Go back')]`,
   turnOnNotifications: `//span[contains(text(),'Turn on notifications')]`,
-  notNowBtn: `//button[contains(text(),'Not Now')]`,
-  notNowDiv: `//div[contains(text(),'Not now')]`,
-  notNowSaveLoginInfo: `//button[contains(text(),'Not now')]`,
-  // this is only the SVG. not clickable
-  newPost: `svg[aria-label="New post"]`,
-  // newPost.parentElement.parentElement.parentElement.parentElement.parentElement ==> the a element which is clickable
-  // use querySelectorAll
-  mNewPost: `//a[div[div[div[div[*[*[text()[
+  notNowBtn: `//button[text()[
   contains(
     translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
-    'home'
+    'not now'
   )
-]]]]]]]]`,
-  mPostSpan: `//div[@role="button"][div[div[div[div[div[div[span[span[text()[
+]]`,
+  notNowDiv: `//div[@role="button"][text()[
   contains(
     translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
-    'post'
+    'not now'
   )
-]]]]]]]]]]`,
-  mCancelAddToHome: `//button[contains(text(),'Cancel')]`,
+]]`,
+  newPost: `//a[div[div[div[div[span[span[text()[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'create'
+  )]]]]]]]]`,
+  selectFromComputer: `//button[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'select from computer'
+  )
+]]`,
+  mCancelAddToHome: `//button[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'cancel'
+  )
+]]`,
   wrongSecurityCode: `//p[contains(text(), 'Please check the security code and try again.')]`,
   // mNewPost[1].parentElement.parentElement.parentElement.parentElement.parentElement ==> the a element which is clickable
   mPostType: `div[role="dialog"]`,
@@ -77,16 +87,45 @@ export const instagramSelectors = {
   mTabs: `//div[contains(text(),'Filter')]`,
   // mTabs.parentElement.parentElement.children[0] ==> Filter
   // mTabs.parentElement.parentElement.children[1] ==> Edit
-  mPostNextStep: `//button[contains(text(),'Next')]`,
-  mCaption: `textarea[aria-label="Write a caption..."]`,
-  mShareBtn: `//button[contains(text(),'Share')]`,
-  // TODO: add support for Desktop
-  selectFromComputer: `//button[contains(text(),'Select From Computer')]`,
+  postNextStep: `//div[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'next'
+  )
+]]`,
+  caption: `div[data-lexical-editor="true"]`,
+  shareDiv: `//div[@role="button"][text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'share'
+  )
+]]`,
+  okBtn: `//button[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'ok'
+  )
+]]`,
+  sharedNotif: `//span[text()[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'shared'
+  )]]`,
+  switchAccount: `//div[@role="button"][text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'switch account'
+  )
+]]`,
+  closeBtn: `//div[@role="button"][div[*[*[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'close'
+  )
+]]]]]`,
   ratios: `svg[aria-label="Select Crop"]`,
   // ratios.parentElement.parentElement ==> clickable
   ratiosChoises: `//div[contains(text(),'Original')]`,
   // ratiosChoises.parentElement.parentElement.parentElement.parentElement.querySelectorAll('button') ==> the buttons
-  postNextStep: `//div[contains(text(),'Next')]`,
   filtersTab: `//span[contains(text(),'Filters')]`,
   // adjustmentsTab: `//span[contains(text(),'Adjustments')]`,
   filters: `//div[contains(text(),'Clarendon')]`,

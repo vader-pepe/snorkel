@@ -4,8 +4,8 @@ import Client from "./Client";
 
 function main() {
   const client = new Client()
-
   client.initialize()
+
   client.on('ready', async ({ facebook, instagram, twitter }) => {
     facebook.on('facebook-state-change', async state => {
       console.log('fb', state)
@@ -29,17 +29,17 @@ function main() {
 
     const facebookIsLoggedIn = await facebook.isLoggedIn()
     if (!facebookIsLoggedIn) {
-      // await facebook.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
+      // await facebook.login('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
     const instagramIsLoggedin = await instagram.isLoggedIn()
     if (!instagramIsLoggedin) {
-      // await instagram.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
+      // await instagram.login('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
     const twitterIsLoggedIn = await twitter.isLoggedIn()
     if (!twitterIsLoggedIn) {
-      // await twitter.beginLogin('YOUR USERNAME', 'YOUR PASSWORD')
+      // await twitter.login('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
   })

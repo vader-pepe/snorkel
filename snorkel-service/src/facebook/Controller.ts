@@ -3,6 +3,7 @@ import { Page } from "puppeteer";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import path from "path";
+import { sleep } from "@/utils";
 
 const STATE_CONSTANT = 'facebook-state-change'
 const storage = path.resolve('./src/storage')
@@ -27,11 +28,9 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     this.context = context
   }
 
-  wildCard() {
-
-  }
-
-  async newPhotosPost(media: string, newStatus?: string) {
+  async createPostWithMedia(media: string, caption?: string) {
+    const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
+    const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
@@ -39,45 +38,39 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       throw new Error('Account not found!')
     }
 
-    await this.context.waitForSelector(facebookSelectors.mNewPost)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
 
     await Promise.all([
       this.context.waitForNavigation({
         waitUntil: 'load'
       }),
-      this.context.click(facebookSelectors.mNewPost)
+      this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
     ])
 
+    await this.context.waitForSelector(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
     const [fileChooser] = await Promise.all([
       this.context.waitForFileChooser({
         timeout: 3000
       }),
-      this.context.waitForSelector(facebookSelectors.mNewPhotosPost).then(() => {
-        this.context.click(facebookSelectors.mNewPhotosPost)
-      })
+      this.context.click(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
     ])
 
     await fileChooser.accept([`${storage}/${media}`]);
-    if (!!newStatus) {
-      await this.context.type(facebookSelectors.mStatusField, newStatus, { delay: 100 })
+    if (!!caption) {
+      await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
+      await this.context.click('xpath/' + facebookSelectors.captionSpawner)
+      await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
+      await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption)
     }
-    // weird Facebook behaviour
-    await this.context.evaluate((selector) => {
-      const btn = document.querySelector(selector)
-      // @ts-ignore
-      btn.click()
-    }, facebookSelectors.mPostBtn)
-
-    // dialog leaving Facebook will appear for no reason
-    this.context.on('dialog', async dialog => {
-      await dialog.dismiss();
-    });
+    await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
+    await sleep(3000)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 0 })
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
   }
 
-  async newTextPost(newStatus: string) {
+  async createPost(caption: string) {
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
@@ -85,26 +78,23 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       throw new Error('Account not found!')
     }
 
-    await this.context.waitForSelector(facebookSelectors.mNewPost)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
 
     await Promise.all([
       this.context.waitForNavigation({
         waitUntil: 'load'
       }),
-      this.context.click(facebookSelectors.mNewPost)
+      this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
     ])
 
-    await this.context.type(facebookSelectors.mStatusField, newStatus, { delay: 100 })
-    // weird Facebook behaviour
-    await this.context.evaluate((selector) => {
-      let btn = document.querySelector(selector) as HTMLButtonElement
-      btn.click()
-    }, facebookSelectors.mPostBtn)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
+    await this.context.click('xpath/' + facebookSelectors.captionSpawner)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
+    await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption)
 
-    // dialog leaving Facebook will appear for no reason
-    this.context.on('dialog', async dialog => {
-      await dialog.dismiss();
-    });
+    await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
+    await sleep(2000)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 0 })
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
 
@@ -113,7 +103,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
   async isLoggedIn() {
     let alreadyLoggedIn = false
 
-    await this.context.waitForSelector('xpath/' + facebookSelectors.mStatusFieldXpath, { timeout: 3000 }).then(async () => {
+    await this.context.waitForSelector('xpath/' + facebookSelectors.mStatusFieldXpath).then(() => {
       alreadyLoggedIn = true
     }).catch(() => {
       // keep empty
@@ -122,22 +112,15 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     return alreadyLoggedIn
   }
 
-  async beginLogin(username: string, password: string) {
+  async login(username: string, password: string) {
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     await this.context.type(facebookSelectors.mEmailField, username, { delay: 100 })
     await this.context.type(facebookSelectors.mPassField, password, { delay: 100 })
     await this.context.waitForSelector(facebookSelectors.mLoginBtn)
 
-    // weird behaviour. if the page is not screenshoted,
-    // the page will not navigated.
-    await this.context.screenshot({
-      path: `${storage}/login.png`,
-      type: 'png'
-    })
-
     await Promise.all([
       this.context.waitForNavigation({
-        waitUntil: 'domcontentloaded',
+        waitUntil: 'load',
       }),
       this.context.click(facebookSelectors.mLoginBtn)
     ])

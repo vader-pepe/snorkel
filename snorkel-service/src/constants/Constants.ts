@@ -7,7 +7,11 @@ export const defaultOptions = {
   puppeteer: {
     headless: 'new',
     defaultViewport: null,
-    userDataDir
+    userDataDir,
+    // required for video. chromium from 
+    // puppeteer sucks
+    executablePath: '/usr/bin/google-chrome-stable',
+    protocolTimeout: 0
   } as PuppeteerLaunchOptions,
   connectOpts: {} as ConnectOptions,
   webVersion: '2.2322.15',

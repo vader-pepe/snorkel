@@ -1,12 +1,10 @@
 export const facebookSelectors = {
-  // disable "Get alerts about unrecognised logins" first
   emailField: `input[type='text'][name='email'][id='email'][data-testid='royal_email']`,
   passField: `[type='password'][name='pass'][id='pass'][data-testid='royal_pass']`,
   loginBtn: `[name='login'][data-testid='royal_login_button'][type='submit']`,
   newPost: `//span[contains(text(),"What's on your mind, Ihsan?")]`,
   postField: `div[aria-label="What's on your mind, Ihsan?"]`,
   newPostPopup: `div[role='textbox'][spellcheck='true'][tabindex='0'][data-lexical-editor='true'][contenteditable='true']`,
-  //TODO: get to automate the input from the web (Desktop version)
   postBtn: `div[aria-label='Post'][role='button'][tabindex='0']'`,
   // facebook mobile
   mEmailField: `input[type="email"][data-sigil="m_login_email"]`,
@@ -19,7 +17,30 @@ export const facebookSelectors = {
   mStatusFieldXpath: `//div[contains(text(),"What's on your mind?")]`,
   mStatusFieldOnFill: `//button[contains(text(), "What's on your mind?")]`,
   mPhotoBtn: `button[data-sigil="touchable hidden-button photo-button"][type="button"]`,
-  mPostBtn: `div > button[type="submit"][value="Post"][data-sigil="touchable submit_composer"]`,
-  mNewPhotosPost: `button[data-sigil="touchable hidden-button photo-button"]`,
-  skipNContinue: `//span[contains(text(), "Skip and continue posting")]`
+  mNewPhotosPost: `//div[@role="button"][div[div[text()[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'photo'
+  )]]]]`,
+  skipNContinue: `//span[text()[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    "Skip and continue posting"
+  )]]`,
+  // =============================== V2 =====================================
+  whatsOnYourmind: `//div[@role="button"][@aria-label[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'post'
+  )]]`,
+  captionSpawner: `//button[contains(text(),"What's on your mind?")]`,
+  captionTextarea: `//div[@class="textbox-container with-mentions"]//textarea`,
+  submitPostBtn: `//button[span[contains(text(),"POST")]]`,
+  mNewVideoPost: `//div[@role="button"][div[div[text()[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'video'
+  )]]]]`,
+  postedToast: `//div[@class="toast-label"][text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'posted'
+  )
+]]`,
 }

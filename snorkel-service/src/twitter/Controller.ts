@@ -25,55 +25,9 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
   constructor(context: Page) {
     super()
     this.context = context
-    this.context.evaluate(`
-        function getElementByXpath(path) {
-          return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        }`)
   }
 
-  async newMediaPost(media: string, post?: string) {
-    this.emit(STATE_CONSTANT, twitterState.LOADING)
-    const isLoggedIn = await this.isLoggedIn()
-    if (!isLoggedIn) {
-      this.emit(STATE_CONSTANT, twitterState.LOADING_DONE)
-      throw new Error('Account not found!')
-    }
-
-    await this.context.waitForSelector(twitterSelectors.mNewTweet)
-
-    await Promise.all([
-      this.context.waitForNavigation({
-        waitUntil: 'load'
-      }),
-      this.context.click(twitterSelectors.mNewTweet)
-    ])
-
-    const [fileChooser] = await Promise.all([
-      this.context.waitForFileChooser({
-        timeout: 3000
-      }),
-      this.context.waitForSelector(twitterSelectors.mAddPhotos).then(() => {
-        this.context.click(twitterSelectors.mAddPhotos)
-      })
-    ])
-
-    await fileChooser.accept([`${storage}/${media}`]);
-    if (!!post) {
-      await this.context.type(twitterSelectors.mComposeTweet, post)
-      await this.context.evaluate((selector) => {
-        // @ts-ignore
-        const sendTwtBtn = window.getElementByXpath(selector)
-        // @ts-ignore
-        sendTwtBtn.parentElement.parentElement.parentElement.click()
-      }, twitterSelectors.mSendTweet)
-    }
-
-    this.emit(STATE_CONSTANT, twitterState.LOADING_DONE)
-    this.emit(STATE_CONSTANT, twitterState.POST_DONE)
-
-  }
-
-  async newTextPost(post: string) {
+  async createPost(caption: string) {
     this.emit(STATE_CONSTANT, State.LOADING)
     const isLoggedIn = await this.isLoggedIn()
 
@@ -86,46 +40,35 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
       this.context.click(twitterSelectors.mNewTweet)
     ])
 
+    await this.context.click('xpath/' + twitterSelectors.mMaybeLater).catch(() => {/* keep empty */ })
+
     await this.context.waitForSelector(twitterSelectors.mComposeTweet)
-    await this.context.type(twitterSelectors.mComposeTweet, post)
-    await this.context.evaluate((selector) => {
-      // @ts-ignore
-      const sendTwtBtn = window.getElementByXpath(selector)
-      // @ts-ignore
-      sendTwtBtn.parentElement.parentElement.parentElement.click()
-    }, twitterSelectors.mSendTweet)
+    await this.context.type(twitterSelectors.mComposeTweet, caption)
+    await this.context.click('xpath/' + twitterSelectors.mSendTweet)
+    await this.context.waitForSelector(twitterSelectors.mNewTweet).catch(() => {
+      throw new Error('Something unexpected happened!')
+    })
 
     this.emit(STATE_CONSTANT, State.LOADING_DONE)
     this.emit(STATE_CONSTANT, twitterState.POST_DONE)
   }
 
-  async beginLogin(username: string, password: string) {
+  async login(username: string, password: string) {
     this.emit(STATE_CONSTANT, State.LOADING)
     await Promise.all([
       this.context.waitForNavigation(),
-      this.context.click(twitterSelectors.mLoginBtn)
+      this.context.click(twitterSelectors.mSigninBtn)
     ])
     await this.context.waitForSelector(twitterSelectors.mUsernameField)
-    await this.context.type(twitterSelectors.mUsernameField, username)
-    await this.context.evaluate((selector) => {
-      // @ts-ignore
-      const nextBtn = window.getElementByXpath(selector)
-      // @ts-ignore
-      nextBtn.parentElement.parentElement.parentElement.click()
-    }, twitterSelectors.mNextStep)
+    await this.context.type(twitterSelectors.mUsernameField, username, { delay: 100 })
+    await this.context.click('xpath/' + twitterSelectors.mNextStep)
 
     await this.context.waitForSelector(twitterSelectors.mPasswordField)
-    await this.context.type(twitterSelectors.mPasswordField, password)
+    await this.context.type(twitterSelectors.mPasswordField, password, { delay: 100 })
 
     await Promise.all([
       this.context.waitForNavigation(),
-      this.context.evaluate((selector) => {
-        // @ts-ignore
-        const loginBtn = window.getElementByXpath(selector)
-        // @ts-ignore
-        loginBtn.parentElement.parentElement.parentElement.click()
-      }, twitterSelectors.mLoginBtn)
-
+      this.context.click('xpath/' + twitterSelectors.mLoginBtn)
     ])
 
     const isLoggedIn = await this.isLoggedIn()
@@ -147,6 +90,46 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
     })
 
     return isLoggedin
+  }
+
+  async createPostWithMedia(media: string, caption?: string) {
+    const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
+    const isImage = imageRegex.test(media)
+    this.emit(STATE_CONSTANT, State.LOADING)
+    const isLoggedIn = await this.isLoggedIn()
+
+    if (!isLoggedIn) {
+      throw new Error('Account not detected!')
+    }
+
+    await Promise.all([
+      this.context.waitForNavigation(),
+      this.context.click(twitterSelectors.mNewTweet)
+    ])
+
+    await this.context.click('xpath/' + twitterSelectors.mMaybeLater).catch(() => {/* keep empty */ })
+
+    const [fileChooser] = await Promise.all([
+      this.context.waitForFileChooser(),
+      this.context.click(twitterSelectors.mAddPhotosOrVideos),
+    ])
+
+    await fileChooser.accept([`${storage}/${media}`])
+    if (!isImage) {
+      await this.context.waitForSelector('xpath/' + twitterSelectors.uploadedNotif, { timeout: 0 })
+    }
+
+    if (!!caption) {
+      await this.context.waitForSelector(twitterSelectors.mComposeTweet)
+      await this.context.type(twitterSelectors.mComposeTweet, caption)
+    }
+    await this.context.click('xpath/' + twitterSelectors.mSendTweet)
+    await this.context.waitForSelector(twitterSelectors.mNewTweet).catch(() => {
+      throw new Error('Something unexpected happened!')
+    })
+
+    this.emit(STATE_CONSTANT, State.LOADING_DONE)
+    this.emit(STATE_CONSTANT, twitterState.POST_DONE)
   }
 
 }
