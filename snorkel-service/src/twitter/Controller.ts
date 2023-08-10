@@ -123,7 +123,7 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
 
     if (!!caption) {
       await this.context.waitForSelector(twitterSelectors.mComposeTweet)
-      await this.context.type(twitterSelectors.mComposeTweet, caption)
+      await this.context.type(twitterSelectors.mComposeTweet, caption, { delay: 100 })
     }
     await this.context.click('xpath/' + twitterSelectors.mSendTweet)
     await this.context.waitForSelector(twitterSelectors.mNewTweet).catch(() => {

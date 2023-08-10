@@ -57,7 +57,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
       await this.context.click('xpath/' + facebookSelectors.captionSpawner)
       await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
-      await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption)
+      await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption, { delay: 100 })
     }
     await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
     await sleep(3000)

@@ -3,6 +3,8 @@ import { Page } from "puppeteer-core";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import { addWatermarkToImage, addWatermarkToVideo } from "@/lib/addWatermark";
+import path from "path";
+const storage = path.resolve('./src/storage')
 
 const { instagramSelectors } = selectors
 const STATE_CONSTANT = 'instagram-state-change'
@@ -55,12 +57,15 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
     if (!!caption) {
       await this.context.waitForSelector(instagramSelectors.caption)
-      await this.context.type(instagramSelectors.caption, caption)
+      await this.context.type(instagramSelectors.caption, caption, { delay: 100 })
     }
     await this.context.waitForSelector('xpath/' + instagramSelectors.shareDiv)
     await this.context.click('xpath/' + instagramSelectors.shareDiv)
+    await this.context.screenshot({
+      path: `${storage}/post-upload.png`,
+      type: 'png'
+    })
     await this.context.waitForSelector('xpath/' + instagramSelectors.sharedNotif, { timeout: 0 }).catch(() => {
-      throw new Error('Something unexpected happened!')
     })
     await this.context.click('xpath/' + instagramSelectors.closeBtn)
 
