@@ -1,12 +1,11 @@
 import selectors from "@/constants";
-import { Page } from "puppeteer";
+import { Page } from "puppeteer-core";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
-import path from "path";
+import { addWatermarkToImage, addWatermarkToVideo } from "@/lib/addWatermark";
 
 const { instagramSelectors } = selectors
 const STATE_CONSTANT = 'instagram-state-change'
-const storage = path.resolve('./src/storage')
 
 const instagramState = {
   ...State,
@@ -31,7 +30,12 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
   }
 
   async createPost(media: string, caption?: string) {
+    const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
+    const isImage = imageRegex.test(media)
+
     this.emit(STATE_CONSTANT, instagramState.LOADING)
+    let processedMedia = media
+
     await this.context.waitForSelector('xpath/' + instagramSelectors.newPost).catch(() => {
       throw new Error('Upload btn not found!')
     })
@@ -44,8 +48,9 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       this.context.click('xpath/' + instagramSelectors.selectFromComputer)
     ])
 
-    await fileChooser.accept([`${storage}/${media}`]);
+    await fileChooser.accept([processedMedia]);
     await this.context.waitForSelector('xpath/' + instagramSelectors.postNextStep)
+    await this.context.click('xpath/' + instagramSelectors.okBtn).catch(() => {/* keep empty */ })
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
     if (!!caption) {

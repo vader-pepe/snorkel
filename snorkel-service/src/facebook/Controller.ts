@@ -1,9 +1,10 @@
 import selectors from "@/constants";
-import { Page } from "puppeteer";
+import { Page } from "puppeteer-core";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import path from "path";
 import { sleep } from "@/utils";
+import { addWatermarkToImage, addWatermarkToVideo } from "@/lib/addWatermark";
 
 const STATE_CONSTANT = 'facebook-state-change'
 const storage = path.resolve('./src/storage')
@@ -32,6 +33,8 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, facebookState.LOADING)
+    let processedMedia = media
+
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
       this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
@@ -39,13 +42,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }
 
     await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
-
-    await Promise.all([
-      this.context.waitForNavigation({
-        waitUntil: 'load'
-      }),
-      this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
-    ])
+    await this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
 
     await this.context.waitForSelector(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
     const [fileChooser] = await Promise.all([
@@ -55,7 +52,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       this.context.click(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
     ])
 
-    await fileChooser.accept([`${storage}/${media}`]);
+    await fileChooser.accept([processedMedia]);
     if (!!caption) {
       await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
       await this.context.click('xpath/' + facebookSelectors.captionSpawner)
@@ -118,9 +115,17 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     await this.context.type(facebookSelectors.mPassField, password, { delay: 100 })
     await this.context.waitForSelector(facebookSelectors.mLoginBtn)
 
+    // weird behaviour
+    // will not navigate before 
+    // screenshoted
+    await this.context.screenshot({
+      path: `${storage}/login.png`,
+      type: 'png'
+    })
+
     await Promise.all([
       this.context.waitForNavigation({
-        waitUntil: 'load',
+        waitUntil: 'domcontentloaded',
       }),
       this.context.click(facebookSelectors.mLoginBtn)
     ])

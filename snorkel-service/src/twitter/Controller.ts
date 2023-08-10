@@ -1,12 +1,11 @@
 import selectors from "@/constants";
-import { Page } from "puppeteer";
+import { Page } from "puppeteer-core";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import { State } from "@/constants/Events";
-import path from "path";
+import { addWatermarkToImage, addWatermarkToVideo, getVideoMetadata } from "@/lib/addWatermark";
 
 const { twitterSelectors } = selectors
 const STATE_CONSTANT = 'twitter-state-change'
-const storage = path.resolve('./src/storage')
 
 const twitterState = {
   ...State,
@@ -96,6 +95,8 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, State.LOADING)
+    let processedMedia = media
+
     const isLoggedIn = await this.isLoggedIn()
 
     if (!isLoggedIn) {
@@ -108,13 +109,14 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
     ])
 
     await this.context.click('xpath/' + twitterSelectors.mMaybeLater).catch(() => {/* keep empty */ })
+    await this.context.waitForSelector(twitterSelectors.mAddPhotosOrVideos)
 
     const [fileChooser] = await Promise.all([
       this.context.waitForFileChooser(),
       this.context.click(twitterSelectors.mAddPhotosOrVideos),
     ])
 
-    await fileChooser.accept([`${storage}/${media}`])
+    await fileChooser.accept([processedMedia])
     if (!isImage) {
       await this.context.waitForSelector('xpath/' + twitterSelectors.uploadedNotif, { timeout: 0 })
     }

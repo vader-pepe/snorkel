@@ -1,11 +1,10 @@
-import { KnownDevices, Page } from "puppeteer";
+import { KnownDevices, Page } from "puppeteer-core";
 import { PupPage } from "./Client";
 import { FacebookController } from "./facebook/Controller";
 import { InstagramController } from "./instagram/Controller";
 import { TwitterController } from "./twitter/Controller";
 import config from "./config";
 
-const iPhoneSE = KnownDevices['iPhone SE']
 const pixel5 = KnownDevices['Pixel 5']
 const { platforms } = config
 
