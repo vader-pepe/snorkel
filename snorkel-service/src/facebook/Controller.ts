@@ -1,9 +1,10 @@
 import selectors from "@/constants";
-import { Page } from "puppeteer";
+import { Page } from "puppeteer-core";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import path from "path";
 import { sleep } from "@/utils";
+import { addWatermarkToImage, addWatermarkToVideo } from "@/lib/addWatermark";
 
 const STATE_CONSTANT = 'facebook-state-change'
 const storage = path.resolve('./src/storage')
@@ -29,9 +30,12 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
   }
 
   async createPostWithMedia(media: string, caption?: string) {
+    await this.context.bringToFront()
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, facebookState.LOADING)
+    let processedMedia = media
+
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
       this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
@@ -39,13 +43,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }
 
     await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
-
-    await Promise.all([
-      this.context.waitForNavigation({
-        waitUntil: 'load'
-      }),
-      this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
-    ])
+    await this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
 
     await this.context.waitForSelector(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
     const [fileChooser] = await Promise.all([
@@ -55,22 +53,25 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       this.context.click(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
     ])
 
-    await fileChooser.accept([`${storage}/${media}`]);
+    await fileChooser.accept([processedMedia]);
     if (!!caption) {
       await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
       await this.context.click('xpath/' + facebookSelectors.captionSpawner)
       await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
-      await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption)
+      await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption, { delay: 100 })
     }
     await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
     await sleep(3000)
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 0 })
+    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 60000 }).catch(() => {
+      throw new Error('Upload exceeded 60 seconds!')
+    })
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
   }
 
   async createPost(caption: string) {
+    await this.context.bringToFront()
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
@@ -79,22 +80,16 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }
 
     await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
-
-    await Promise.all([
-      this.context.waitForNavigation({
-        waitUntil: 'load'
-      }),
-      this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
-    ])
+    await this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
 
     await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
     await this.context.click('xpath/' + facebookSelectors.captionSpawner)
     await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
-    await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption)
+    await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption, { delay: 100 })
 
     await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
-    await sleep(2000)
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 0 })
+    await sleep(1500)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast)
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
 
@@ -120,7 +115,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
     await Promise.all([
       this.context.waitForNavigation({
-        waitUntil: 'load',
+        waitUntil: 'domcontentloaded',
       }),
       this.context.click(facebookSelectors.mLoginBtn)
     ])

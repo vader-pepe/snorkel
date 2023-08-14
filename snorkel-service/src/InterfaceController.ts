@@ -1,11 +1,10 @@
-import { KnownDevices, Page } from "puppeteer";
+import { KnownDevices, Page } from "puppeteer-core";
 import { PupPage } from "./Client";
 import { FacebookController } from "./facebook/Controller";
 import { InstagramController } from "./instagram/Controller";
 import { TwitterController } from "./twitter/Controller";
 import config from "./config";
 
-const iPhoneSE = KnownDevices['iPhone SE']
 const pixel5 = KnownDevices['Pixel 5']
 const { platforms } = config
 
@@ -46,28 +45,20 @@ class InterfaceController {
         waitUntil: 'domcontentloaded'
       })
 
-      ctx[platform] = page
-
       switch (platform) {
         case 'facebook':
-          if (!!ctx.facebook) {
-            this.facebook = new FacebookController(ctx.facebook)
-            console.log('facebook instance created')
-          }
+          this.facebook = new FacebookController(page)
+          console.log('facebook instance created')
           break;
 
         case 'instagram':
-          if (!!ctx.instagram) {
-            this.instagram = new InstagramController(ctx.instagram)
-            console.log('instagram instance created')
-          }
+          this.instagram = new InstagramController(page)
+          console.log('instagram instance created')
           break;
 
         case 'twitter':
-          if (!!ctx.twitter) {
-            this.twitter = new TwitterController(ctx.twitter)
-            console.log('twitter instance created')
-          }
+          this.twitter = new TwitterController(page)
+          console.log('twitter instance created')
           break;
 
         default:
