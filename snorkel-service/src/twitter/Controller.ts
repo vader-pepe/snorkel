@@ -3,6 +3,9 @@ import { Page } from "puppeteer-core";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import { State } from "@/constants/Events";
 import { addWatermarkToImage, addWatermarkToVideo, getVideoMetadata } from "@/lib/addWatermark";
+import path from "path";
+import { sleep } from "@/utils";
+const storage = path.resolve('./src/storage')
 
 const { twitterSelectors } = selectors
 const STATE_CONSTANT = 'twitter-state-change'
@@ -27,6 +30,7 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
   }
 
   async createPost(caption: string) {
+    await this.context.bringToFront()
     this.emit(STATE_CONSTANT, State.LOADING)
     const isLoggedIn = await this.isLoggedIn()
 
@@ -34,16 +38,17 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
       throw new Error('Account not detected!')
     }
 
-    await Promise.all([
-      this.context.waitForNavigation(),
-      this.context.click(twitterSelectors.mNewTweet)
-    ])
+    await this.context.waitForSelector(twitterSelectors.mNewTweet)
+    await this.context.click(twitterSelectors.mNewTweet)
+    await sleep(500)
 
     await this.context.click('xpath/' + twitterSelectors.mMaybeLater).catch(() => {/* keep empty */ })
 
     await this.context.waitForSelector(twitterSelectors.mComposeTweet)
-    await this.context.type(twitterSelectors.mComposeTweet, caption)
+    await this.context.type(twitterSelectors.mComposeTweet, caption, { delay: 100 })
+    await sleep(500)
     await this.context.click('xpath/' + twitterSelectors.mSendTweet)
+    await sleep(500)
     await this.context.waitForSelector(twitterSelectors.mNewTweet).catch(() => {
       throw new Error('Something unexpected happened!')
     })
@@ -92,8 +97,10 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
   }
 
   async createPostWithMedia(media: string, caption?: string) {
+    await this.context.bringToFront()
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
+    await sleep(500)
     this.emit(STATE_CONSTANT, State.LOADING)
     let processedMedia = media
 
@@ -103,10 +110,9 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
       throw new Error('Account not detected!')
     }
 
-    await Promise.all([
-      this.context.waitForNavigation(),
-      this.context.click(twitterSelectors.mNewTweet)
-    ])
+    await this.context.screenshot()
+    await this.context.waitForSelector(twitterSelectors.mNewTweet)
+    await this.context.click(twitterSelectors.mNewTweet)
 
     await this.context.click('xpath/' + twitterSelectors.mMaybeLater).catch(() => {/* keep empty */ })
     await this.context.waitForSelector(twitterSelectors.mAddPhotosOrVideos)
@@ -115,6 +121,7 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
       this.context.waitForFileChooser(),
       this.context.click(twitterSelectors.mAddPhotosOrVideos),
     ])
+    await sleep(500)
 
     await fileChooser.accept([processedMedia])
     if (!isImage) {
@@ -126,6 +133,7 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
       await this.context.type(twitterSelectors.mComposeTweet, caption, { delay: 100 })
     }
     await this.context.click('xpath/' + twitterSelectors.mSendTweet)
+    await sleep(500)
     await this.context.waitForSelector(twitterSelectors.mNewTweet).catch(() => {
       throw new Error('Something unexpected happened!')
     })

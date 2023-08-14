@@ -1,9 +1,10 @@
+import path from "path";
+import fs from "fs/promises"
 import selectors from "@/constants";
 import { Page } from "puppeteer-core";
 import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
-import { addWatermarkToImage, addWatermarkToVideo } from "@/lib/addWatermark";
-import path from "path";
+import { sleep } from "@/utils";
 const storage = path.resolve('./src/storage')
 
 const { instagramSelectors } = selectors
@@ -32,6 +33,7 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
   }
 
   async createPost(media: string, caption?: string) {
+    await this.context.bringToFront()
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
 
@@ -41,7 +43,10 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     await this.context.waitForSelector('xpath/' + instagramSelectors.newPost).catch(() => {
       throw new Error('Upload btn not found!')
     })
-
+    await this.context.screenshot({
+      path: `${storage}/dump.png`,
+      type: 'png'
+    })
     await this.context.click('xpath/' + instagramSelectors.newPost)
     await this.context.waitForSelector('xpath/' + instagramSelectors.selectFromComputer)
 
@@ -52,6 +57,7 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
 
     await fileChooser.accept([processedMedia]);
     await this.context.waitForSelector('xpath/' + instagramSelectors.postNextStep)
+    await sleep(500)
     await this.context.click('xpath/' + instagramSelectors.okBtn).catch(() => {/* keep empty */ })
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
@@ -60,17 +66,20 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       await this.context.type(instagramSelectors.caption, caption, { delay: 100 })
     }
     await this.context.waitForSelector('xpath/' + instagramSelectors.shareDiv)
-    await this.context.click('xpath/' + instagramSelectors.shareDiv)
     await this.context.screenshot({
-      path: `${storage}/post-upload.png`,
+      path: `${storage}/dump.png`,
       type: 'png'
     })
-    await this.context.waitForSelector('xpath/' + instagramSelectors.sharedNotif, { timeout: 0 }).catch(() => {
+    await this.context.click('xpath/' + instagramSelectors.shareDiv)
+    await this.context.waitForSelector('xpath/' + instagramSelectors.sharedNotif, { timeout: 60000 }).catch(() => {
+      throw new Error('Upload exceeded 60 seconds!')
     })
+    await sleep(500)
     await this.context.click('xpath/' + instagramSelectors.closeBtn)
 
     this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
     this.emit(STATE_CONSTANT, instagramState.POST_DONE)
+    await fs.unlink(`${storage}/dump.png`).catch(() => { /* keep empty */ })
   }
 
   async isLoggedIn() {

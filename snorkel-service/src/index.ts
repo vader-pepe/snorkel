@@ -9,7 +9,7 @@ function main() {
   const client = new Client({
     puppeteer: {
       userDataDir,
-      executablePath: '/usr/bin/google-chrome-stable'
+      executablePath: '/usr/bin/google-chrome-stable',
     }
   })
   client.initialize()
@@ -50,6 +50,9 @@ function main() {
       // await twitter.login('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
+    if (facebookIsLoggedIn && instagramIsLoggedin && twitterIsLoggedIn) {
+
+    }
   })
 }
 

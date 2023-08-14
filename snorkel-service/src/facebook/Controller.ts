@@ -30,6 +30,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
   }
 
   async createPostWithMedia(media: string, caption?: string) {
+    await this.context.bringToFront()
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, facebookState.LOADING)
@@ -61,13 +62,16 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }
     await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
     await sleep(3000)
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 0 })
+    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 60000 }).catch(() => {
+      throw new Error('Upload exceeded 60 seconds!')
+    })
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
   }
 
   async createPost(caption: string) {
+    await this.context.bringToFront()
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
@@ -76,22 +80,16 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }
 
     await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
-
-    await Promise.all([
-      this.context.waitForNavigation({
-        waitUntil: 'load'
-      }),
-      this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
-    ])
+    await this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
 
     await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
     await this.context.click('xpath/' + facebookSelectors.captionSpawner)
     await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
-    await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption)
+    await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption, { delay: 100 })
 
     await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
-    await sleep(2000)
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 0 })
+    await sleep(1500)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast)
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
 
@@ -114,14 +112,6 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     await this.context.type(facebookSelectors.mEmailField, username, { delay: 100 })
     await this.context.type(facebookSelectors.mPassField, password, { delay: 100 })
     await this.context.waitForSelector(facebookSelectors.mLoginBtn)
-
-    // weird behaviour
-    // will not navigate before 
-    // screenshoted
-    await this.context.screenshot({
-      path: `${storage}/login.png`,
-      type: 'png'
-    })
 
     await Promise.all([
       this.context.waitForNavigation({
