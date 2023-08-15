@@ -50,9 +50,6 @@ function main() {
       // await twitter.login('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
-    if (facebookIsLoggedIn && instagramIsLoggedin && twitterIsLoggedIn) {
-
-    }
   })
 }
 

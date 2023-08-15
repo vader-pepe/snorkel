@@ -31,6 +31,14 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
   async createPostWithMedia(media: string, caption?: string) {
     await this.context.bringToFront()
+    if (this.context.url() !== 'https://m.facebook.com/') {
+      await Promise.all([
+        this.context.waitForNavigation({
+          waitUntil: 'domcontentloaded'
+        }),
+        this.context.goto('https://m.facebook.com/')
+      ])
+    }
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, facebookState.LOADING)
@@ -72,6 +80,14 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
   async createPost(caption: string) {
     await this.context.bringToFront()
+    if (this.context.url() !== 'https://m.facebook.com/') {
+      await Promise.all([
+        this.context.waitForNavigation({
+          waitUntil: 'domcontentloaded'
+        }),
+        this.context.goto('https://m.facebook.com/')
+      ])
+    }
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
@@ -108,6 +124,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
   }
 
   async login(username: string, password: string) {
+    await this.context.bringToFront()
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     await this.context.type(facebookSelectors.mEmailField, username, { delay: 100 })
     await this.context.type(facebookSelectors.mPassField, password, { delay: 100 })
@@ -134,6 +151,122 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     } else {
       this.emit(STATE_CONSTANT, facebookState.NEED_LOG_IN)
     }
+  }
+
+  async getPosts(number = 1) {
+    await this.context.bringToFront()
+    this.emit(STATE_CONSTANT, facebookState.LOADING)
+    const isLoggedIn = await this.isLoggedIn()
+    if (!isLoggedIn) {
+      throw new Error('Account not found!')
+    }
+
+    await Promise.all([
+      this.context.waitForNavigation({
+        waitUntil: 'domcontentloaded'
+      }),
+      this.context.goto('https://www.facebook.com/profile.php'),
+    ])
+
+    await this.context.waitForSelector('xpath/' + facebookSelectors.postsHeader)
+    let posts: Array<{
+      name: string
+      caption: string | null
+      otherCaption: string | null
+      media: string | null
+      likes: number
+      comment: number
+    }> = []
+
+    posts = await this.context.evaluate((selector) => {
+      // @ts-ignore
+      function $x(text, ctx) {
+        var results = [];
+        var xpathResult = document.evaluate(
+          text,
+          ctx || document,
+          null,
+          XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+          null
+        );
+        var node;
+        while ((node = xpathResult.iterateNext()) != null) {
+          results.push(node);
+        }
+        return results;
+      }
+      // @ts-ignore
+      let elementsNotMeetingCondition = []
+      // @ts-ignore
+      let posts = []
+      // @ts-ignore
+      let postsHeader = $x(selector.header)
+      // @ts-ignore
+      let postsFooter = $x(selector.footer)
+      // @ts-ignore
+      function collectElementsUntilCondition(element, targetElement, condition, collectedElements = []) {
+        if (!element || element === targetElement) {
+          return collectedElements;
+        }
+
+        if (!condition(element)) {
+          // @ts-ignore
+          collectedElements.push(element);
+        }
+
+        if (!collectedElements.length) {
+          // Store the first element that doesn't meet the condition
+          // @ts-ignore
+          collectedElements.push(element);
+        }
+
+        return collectElementsUntilCondition(element.nextElementSibling, targetElement, condition, collectedElements);
+      }
+
+      // Include the last element if the target wasn't found
+      if (elementsNotMeetingCondition.length) {
+        // @ts-ignore
+        elementsNotMeetingCondition.push(elementsNotMeetingCondition[elementsNotMeetingCondition.length - 1].nextElementSibling);
+      }
+
+      // @ts-ignore
+      let temp = []
+      // @ts-ignore
+      posts = postsHeader.map((header, index) => {
+        const elementsNotMeetingCondition = collectElementsUntilCondition(
+          header,
+          postsFooter[index],
+          // @ts-ignore
+          () => {
+            // Define your condition here
+            return
+          }
+        );
+
+        // Include the last element if the target wasn't found
+        if (elementsNotMeetingCondition.length) {
+          elementsNotMeetingCondition.push(elementsNotMeetingCondition[elementsNotMeetingCondition.length - 1].nextElementSibling);
+        }
+        return elementsNotMeetingCondition
+      })
+
+      for (let i = 0; i < posts.length; i++) {
+        temp.push({
+          name: posts[i][0]?.children?.[0]?.children?.[1]?.children?.[0]?.textContent || null,
+          caption: posts[i][1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
+          otherCaption: posts[i][2]?.children?.[0]?.children?.[4]?.textContent || null,
+          media: posts[i][2]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
+          likes: posts[i][4]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.textContent || 0,
+          comment: posts[i][4]?.children?.[1]?.children?.[0]?.children?.[0]?.textContent || 0,
+        })
+      }
+      return temp
+
+    }, { header: facebookSelectors.postsHeader, footer: facebookSelectors.postsFooter })
+
+
+    console.log(posts)
+    this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
   }
 
 }

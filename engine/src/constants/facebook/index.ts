@@ -43,4 +43,11 @@ export const facebookSelectors = {
     'posted'
   )
 ]]`,
+  timelines: `//div[@class="m"][@data-tracking-duration-id][@data-type="container"][div[div[@data-comp-id]]]`,
+  // desktop!
+  posts: `//div[div[div[div[div[div[@aria-posinset]]]]]]`,
+  postsHeader: `//div[@data-tti-phase="-1"][@data-tracking-duration-id][@data-actual-height][@data-mcomponent="MContainer"][@data-type="container"][@data-focusable="true"][div[div[div[div[div[img]]]]]]`,
+  postsFooter: `//div[@data-tti-phase="-1"][@data-tracking-duration-id][@data-actual-height][@data-mcomponent="MContainer"][@data-type="container"][@data-focusable="true"][div[@data-comp-id][@data-long-click-action-id]]`
 }
+
+
