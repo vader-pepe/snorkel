@@ -38,6 +38,10 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     const isImage = imageRegex.test(media)
 
     this.emit(STATE_CONSTANT, instagramState.LOADING)
+    const isLoggedIn = await this.isLoggedIn()
+    if (!isLoggedIn) {
+      throw new Error('No account detected!')
+    }
     let processedMedia = media
 
     await this.context.waitForSelector('xpath/' + instagramSelectors.newPost).catch(() => {
@@ -122,6 +126,7 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
   // so you have to call securityCodeInput() after this one!
   async login(username: string, password: string) {
     let needSecurityCode = false
+    await this.context.bringToFront()
     this.emit(STATE_CONSTANT, instagramState.LOADING)
 
     await this.context.waitForSelector('xpath/' + instagramSelectors.switchAccount).catch(() => { /* keep empty */ })
@@ -134,6 +139,10 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     // login process
     await this.context.type('xpath/' + instagramSelectors.emailField, username)
     await this.context.type('xpath/' + instagramSelectors.passwordField, password)
+    await this.context.screenshot({
+      path: `${storage}/dump.png`,
+      type: 'png'
+    })
 
     await this.context.click(instagramSelectors.loginSubmitBtn)
 
@@ -148,22 +157,12 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       this.emit(STATE_CONSTANT, instagramState.INSTAGRAM_NEED_SECURITY_CODE)
     }
 
-    await this.context.waitForSelector('xpath/' + instagramSelectors.notNowDiv).catch(() => {
-      // keep empty
-    })
-
-    await this.context.click('xpath/' + instagramSelectors.notNowDiv).catch(() => {
-      // keep empty
-    })
-
     const isLoggedin = await this.isLoggedIn();
+    await fs.unlink(`${storage}/dump.png`).catch(() => { /* keep empty */ })
     this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
     if (isLoggedin) {
       this.emit(STATE_CONSTANT, instagramState.LOGGED_IN)
-    } else {
-      this.emit(STATE_CONSTANT, instagramState.NEED_LOG_IN)
     }
-
   }
 
   // 6 digit numerical code
@@ -182,6 +181,14 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       // keep empty
     })
 
+    await this.context.waitForSelector('xpath/' + instagramSelectors.notNowDiv).catch(() => {
+      // keep empty
+    })
+
+    await this.context.click('xpath/' + instagramSelectors.notNowDiv).catch(() => {
+      // keep empty
+    })
+
     const loggedIn = await this.isLoggedIn()
     this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
     if (loggedIn) {
@@ -193,6 +200,101 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
         // keep empty
       })
     }
+  }
+
+  async getPost() {
+    await this.context.bringToFront()
+    this.emit(STATE_CONSTANT, instagramState.LOADING)
+    await Promise.all([
+      this.context.waitForNavigation({
+        waitUntil: 'domcontentloaded'
+      }),
+      this.context.click('xpath/' + instagramSelectors.profile)
+    ])
+
+    let postUrls: Array<string> = []
+
+    await this.context.waitForSelector('xpath/' + instagramSelectors.changeProfilePhoto)
+
+    postUrls = await this.context.evaluate((selector) => {
+
+      // @ts-ignore
+      function $x(text, ctx = null) {
+        var results = [];
+        var xpathResult = document.evaluate(
+          text,
+          ctx || document,
+          null,
+          XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+          null
+        );
+        var node;
+        while ((node = xpathResult.iterateNext()) != null) {
+          results.push(node);
+        }
+        return results;
+      }
+
+      // @ts-ignore
+      const postsContainer = $x(selector)
+      // @ts-ignore
+      let urls = []
+
+      for (let i = 0; i < postsContainer.length; i++) {
+        // @ts-ignore
+        urls.push(postsContainer[i]?.children?.[0]?.href || '')
+      }
+
+      return urls
+    }, instagramSelectors.postsContainer)
+    console.log(postUrls)
+
+    const posts: Array<{
+      name: string
+      caption: string
+      likes: string
+      media: string
+    }> = []
+
+    for (let i = 0; i < postUrls.length; i++) {
+      await Promise.all([
+        this.context.waitForNavigation(),
+        this.context.goto(postUrls[i]),
+      ])
+      await this.context.waitForSelector('xpath/' + '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]')
+      await this.context.waitForSelector('xpath/' + '//header//div//div//div//div//div//span//div//div//a')
+      const temp = await this.context.evaluate(() => {
+        // @ts-ignore
+        function $x(text, ctx = null) {
+          var results = [];
+          var xpathResult = document.evaluate(
+            text,
+            ctx || document,
+            null,
+            XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+            null
+          );
+          var node;
+          while ((node = xpathResult.iterateNext()) != null) {
+            results.push(node);
+          }
+          return results;
+        }
+
+        return {
+          // @ts-ignore
+          name: $x(`//header//div//div//div//div//div//span//div//div//a`)?.[0]?.innerHTML || '',
+          // @ts-ignore
+          caption: $x(`//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]`)?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[2]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.innerHTML || '',
+          likes: $x(`//section//span[@dir="auto"]//a//span[contains(text(),"likes")]`)?.[0]?.textContent || '',
+          // @ts-ignore
+          media: $x('//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//img')?.[0].src || ''
+        }
+      })
+      posts.push(temp)
+    }
+    this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
+    return posts
   }
 
 }

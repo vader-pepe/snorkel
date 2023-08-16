@@ -122,6 +122,17 @@ export const instagramSelectors = {
     'close'
   )
 ]]]]]`,
+  profile: `//div//div//span//div//a[@role="link"][div[div[div[div[span[span[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'profile'
+  )
+]]]]]]]]`,
+  changeProfilePhoto: `//button[@title[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'change profile photo'
+  )]]`,
+  postsContainer: `//article//div//div//div[a[@role="link"][@tabindex="0"]]`,
   ratios: `svg[aria-label="Select Crop"]`,
   // ratios.parentElement.parentElement ==> clickable
   ratiosChoises: `//div[contains(text(),'Original')]`,

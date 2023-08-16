@@ -2,7 +2,6 @@ import selectors from "@/constants";
 import { Page } from "puppeteer-core";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import { State } from "@/constants/Events";
-import { addWatermarkToImage, addWatermarkToVideo, getVideoMetadata } from "@/lib/addWatermark";
 import path from "path";
 import { sleep } from "@/utils";
 const storage = path.resolve('./src/storage')

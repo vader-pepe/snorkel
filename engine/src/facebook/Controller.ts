@@ -4,7 +4,6 @@ import { State } from "@/constants/Events";
 import { MyEventEmitter } from "@/utils/CustomEventEmitter";
 import path from "path";
 import { sleep } from "@/utils";
-import { addWatermarkToImage, addWatermarkToVideo } from "@/lib/addWatermark";
 
 const STATE_CONSTANT = 'facebook-state-change'
 const storage = path.resolve('./src/storage')
@@ -180,7 +179,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
     posts = await this.context.evaluate((selector) => {
       // @ts-ignore
-      function $x(text, ctx) {
+      function $x(text, ctx = null) {
         var results = [];
         var xpathResult = document.evaluate(
           text,
@@ -199,9 +198,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       let elementsNotMeetingCondition = []
       // @ts-ignore
       let posts = []
-      // @ts-ignore
       let postsHeader = $x(selector.header)
-      // @ts-ignore
       let postsFooter = $x(selector.footer)
       // @ts-ignore
       function collectElementsUntilCondition(element, targetElement, condition, collectedElements = []) {
@@ -264,9 +261,8 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
     }, { header: facebookSelectors.postsHeader, footer: facebookSelectors.postsFooter })
 
-
-    console.log(posts)
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
+    return posts
   }
 
 }
