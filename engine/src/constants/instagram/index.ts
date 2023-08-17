@@ -133,6 +133,16 @@ export const instagramSelectors = {
     'change profile photo'
   )]]`,
   postsContainer: `//article//div//div//div[a[@role="link"][@tabindex="0"]]`,
+  contentContainer: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]',
+  contentHeader: '//header//div//div//div//div//div//span//div//div//a',
+  contentPoster: `//header//div//div//div//div//div//span//div//div//a`,
+  contentCaption: `//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]`,
+  contentLikesCount: `//section//span[@dir="auto"]//a//span[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'like'
+  )]`,
+  contentImg: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//img',
+  contentVid: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//video',
   ratios: `svg[aria-label="Select Crop"]`,
   // ratios.parentElement.parentElement ==> clickable
   ratiosChoises: `//div[contains(text(),'Original')]`,

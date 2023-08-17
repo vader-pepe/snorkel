@@ -247,7 +247,6 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
 
       return urls
     }, instagramSelectors.postsContainer)
-    console.log(postUrls)
 
     const posts: Array<{
       name: string
@@ -257,13 +256,19 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     }> = []
 
     for (let i = 0; i < postUrls.length; i++) {
+      const isLoggedIn = await this.isLoggedIn()
+      if (!isLoggedIn) {
+        throw new Error('Account not found!')
+      }
+
       await Promise.all([
         this.context.waitForNavigation(),
         this.context.goto(postUrls[i]),
       ])
-      await this.context.waitForSelector('xpath/' + '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]')
-      await this.context.waitForSelector('xpath/' + '//header//div//div//div//div//div//span//div//div//a')
-      const temp = await this.context.evaluate(() => {
+
+      await this.context.waitForSelector('xpath/' + instagramSelectors.contentContainer)
+      await this.context.waitForSelector('xpath/' + instagramSelectors.contentHeader)
+      const temp = await this.context.evaluate((selector) => {
         // @ts-ignore
         function $x(text, ctx = null) {
           var results = [];
@@ -281,15 +286,25 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
           return results;
         }
 
+        const media = $x(selector.contentMedia.contentVid)[0] || $x(selector.contentMedia.contentImg)[0]
+
         return {
           // @ts-ignore
-          name: $x(`//header//div//div//div//div//div//span//div//div//a`)?.[0]?.innerHTML || '',
+          name: $x(selector.contentPoster)?.[0]?.innerHTML || '',
           // @ts-ignore
-          caption: $x(`//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]`)?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[2]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.innerHTML || '',
-          likes: $x(`//section//span[@dir="auto"]//a//span[contains(text(),"likes")]`)?.[0]?.textContent || '',
+          caption: $x(selector.contentCaption)?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[2]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.innerHTML || '',
+          likes: $x(selector.contentLikesCount)?.[0]?.textContent || '',
           // @ts-ignore
-          media: $x('//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//img')?.[0].src || ''
+          media: media?.src || ''
         }
+      }, {
+        contentPoster: instagramSelectors.contentPoster,
+        contentCaption: instagramSelectors.contentCaption,
+        contentLikesCount: instagramSelectors.contentLikesCount,
+        contentMedia: {
+          contentImg: instagramSelectors.contentImg,
+          contentVid: instagramSelectors.contentVid,
+        },
       })
       posts.push(temp)
     }
