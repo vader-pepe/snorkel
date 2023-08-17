@@ -174,7 +174,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       otherCaption: string | null
       media: string | null
       likes: number
-      comment: number
+      comments: number
     }> = []
 
     posts = await this.context.evaluate((selector) => {
@@ -254,7 +254,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
           otherCaption: posts[i][2]?.children?.[0]?.children?.[4]?.textContent || null,
           media: posts[i][2]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
           likes: posts[i][4]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.textContent || 0,
-          comment: posts[i][4]?.children?.[1]?.children?.[0]?.children?.[0]?.textContent || 0,
+          comments: posts[i][4]?.children?.[1]?.children?.[0]?.children?.[0]?.textContent || 0,
         })
       }
       return temp

@@ -50,7 +50,6 @@ function main() {
       // await twitter.login('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
-    await instagram.getPost()
   })
 }
 

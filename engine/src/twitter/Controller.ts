@@ -141,4 +141,115 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
     this.emit(STATE_CONSTANT, twitterState.POST_DONE)
   }
 
+  async getPost() {
+    this.emit(STATE_CONSTANT, State.LOADING)
+    const isLoggedIn = await this.isLoggedIn()
+    if (!isLoggedIn) {
+      throw new Error('Account not found!')
+    }
+
+    await this.context.waitForSelector('xpath/' + twitterSelectors.sidebar)
+    await this.context.click('xpath/' + twitterSelectors.sidebar)
+
+    await Promise.all([
+      this.context.waitForNavigation(),
+      this.context.click('xpath/' + twitterSelectors.profile)
+    ])
+
+    await this.context.waitForSelector('xpath/' + twitterSelectors.firstTweet)
+
+    type PostsIF = Array<{
+      type: string
+      name?: string
+      username: string
+      caption?: string
+      media?: string
+      comments: number
+      retweets: number
+      likes: number
+      views: number
+    }>
+    await sleep(800)
+    const posts: PostsIF = await this.context.evaluate((selector) => {
+      scroll(0, 500);
+      // @ts-ignore
+      function $x(text, ctx = null) {
+        var results = [];
+        var xpathResult = document.evaluate(
+          text,
+          ctx || document,
+          null,
+          XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+          null
+        );
+        var node;
+        while ((node = xpathResult.iterateNext()) != null) {
+          results.push(node);
+        }
+        return results;
+      }
+
+      var postsContainer = Array.from($x(selector.firstTweet))
+      const temp = postsContainer.map(post => {
+        // @ts-ignore
+        const name = post?.querySelector(selector.username)?.querySelectorAll(`a`)[0]?.textContent
+        // @ts-ignore
+        const username = post?.querySelector(selector.username).querySelectorAll(`a`)[1]?.textContent
+        // @ts-ignore
+        const type = post?.querySelector(selector.postType)?.textContent
+        // @ts-ignore
+        const caption = post?.querySelector(selector.caption)?.innerHTML
+        // @ts-ignore
+        const media = post?.querySelector(selector.contentVid)?.href || post?.querySelector(selector.contentImg)?.querySelector(`img`)?.src
+        // @ts-ignore
+        const stats = post?.querySelector(selector.stats).ariaLabel
+        const statsSplit = stats.split(", ")
+        // @ts-ignore
+        const statsObj = {
+          retweets: 0,
+          likes: 0,
+          views: 0,
+          comments: 0,
+        }
+        for (const item of statsSplit) {
+          if (item.includes('repost')) {
+            // @ts-ignore
+            statsObj.retweets = parseInt(item, 10);
+          } else if (item.includes('like')) {
+            // @ts-ignore
+            statsObj.likes = parseInt(item, 10);
+          } else if (item.includes('view')) {
+            // @ts-ignore
+            statsObj.views = parseInt(item, 10);
+          } else if (item.includes('repl')) {
+            // @ts-ignore
+            statsObj.comments = parseInt(item, 10)
+          }
+        }
+        return {
+          type: type || "post",
+          name: name || '',
+          username: username,
+          caption: caption || null,
+          media: media || null,
+          comments: statsObj.comments,
+          retweets: statsObj.retweets,
+          likes: statsObj.likes,
+          views: statsObj.views,
+        }
+      })
+      return temp
+    }, {
+      firstTweet: twitterSelectors.firstTweet,
+      username: twitterSelectors.username,
+      postType: twitterSelectors.postType,
+      caption: twitterSelectors.caption,
+      contentVid: twitterSelectors.contentVid,
+      contentImg: twitterSelectors.contentImg,
+      stats: twitterSelectors.stats
+    })
+    this.emit(STATE_CONSTANT, State.LOADING_DONE)
+    return posts
+  }
+
 }
