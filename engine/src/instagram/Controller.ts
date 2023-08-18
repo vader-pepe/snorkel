@@ -204,6 +204,10 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
 
   async getPost() {
     await this.context.bringToFront()
+    const isLoggedIn = await this.isLoggedIn()
+    if (!isLoggedIn) {
+      throw new Error('Account not found!')
+    }
     this.emit(STATE_CONSTANT, instagramState.LOADING)
     await Promise.all([
       this.context.waitForNavigation({
@@ -262,12 +266,19 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       }
 
       await Promise.all([
-        this.context.waitForNavigation(),
+        this.context.waitForNavigation({
+          waitUntil: 'domcontentloaded'
+        }),
         this.context.goto(postUrls[i]),
       ])
 
+      await this.context.screenshot({
+        path: `${storage}/dump.png`,
+        type: 'png'
+      })
+
       await this.context.waitForSelector('xpath/' + instagramSelectors.contentContainer)
-      await this.context.waitForSelector('xpath/' + instagramSelectors.contentHeader)
+      await sleep(500)
       const temp = await this.context.evaluate((selector) => {
         // @ts-ignore
         function $x(text, ctx = null) {
@@ -309,6 +320,7 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       posts.push(temp)
     }
     this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
+    await fs.unlink(`${storage}/dump.png`).catch(() => { /* keep empty */ })
     return posts
   }
 

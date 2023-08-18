@@ -142,11 +142,14 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
   }
 
   async getPost() {
+    await this.context.bringToFront()
     this.emit(STATE_CONSTANT, State.LOADING)
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
       throw new Error('Account not found!')
     }
+
+    await sleep(1000)
 
     await this.context.waitForSelector('xpath/' + twitterSelectors.sidebar)
     await this.context.click('xpath/' + twitterSelectors.sidebar)
