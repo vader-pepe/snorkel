@@ -30,14 +30,6 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
   async createPostWithMedia(media: string, caption?: string) {
     await this.context.bringToFront()
-    if (this.context.url() !== 'https://m.facebook.com/') {
-      await Promise.all([
-        this.context.waitForNavigation({
-          waitUntil: 'domcontentloaded'
-        }),
-        this.context.goto('https://m.facebook.com/')
-      ])
-    }
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, facebookState.LOADING)

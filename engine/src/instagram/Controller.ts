@@ -61,6 +61,9 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
 
     await fileChooser.accept([processedMedia]);
     await this.context.waitForSelector('xpath/' + instagramSelectors.postNextStep)
+    await this.context.click('xpath/' + instagramSelectors.crop)
+    await this.context.waitForSelector('xpath/' + instagramSelectors.original)
+    await this.context.click('xpath/' + `//div[@role="button"][div[div[span[contains(text(), "Original")]]]]`)
     await sleep(500)
     await this.context.click('xpath/' + instagramSelectors.okBtn).catch(() => {/* keep empty */ })
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
@@ -260,11 +263,6 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     }> = []
 
     for (let i = 0; i < postUrls.length; i++) {
-      const isLoggedIn = await this.isLoggedIn()
-      if (!isLoggedIn) {
-        throw new Error('Account not found!')
-      }
-
       await Promise.all([
         this.context.waitForNavigation({
           waitUntil: 'domcontentloaded'

@@ -141,6 +141,17 @@ export const instagramSelectors = {
     translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
     'like'
   )]`,
+  crop: `//button[div[*[@aria-label[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'crop'
+  )
+]]]]`,
+  original: `//div[@role="button"][div[div[span[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'original'
+  )
+]]]]]`,
   contentImg: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//img',
   contentVid: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//video',
   ratios: `svg[aria-label="Select Crop"]`,
