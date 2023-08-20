@@ -209,17 +209,37 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
       throw new Error('Account not found!')
     }
     this.emit(STATE_CONSTANT, instagramState.LOADING)
-    await Promise.all([
-      this.context.waitForNavigation({
-        waitUntil: 'domcontentloaded'
-      }),
-      this.context.click('xpath/' + instagramSelectors.profile)
-    ])
+    await this.context.screenshot({
+      path: `${storage}/dump.png`,
+      type: 'png'
+    })
+
+    await this.context.evaluate((selector) => {
+
+      // @ts-ignore
+      function $x(text, ctx = null) {
+        var results = [];
+        var xpathResult = document.evaluate(
+          text,
+          ctx || document,
+          null,
+          XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+          null
+        );
+        var node;
+        while ((node = xpathResult.iterateNext()) != null) {
+          results.push(node);
+        }
+        return results;
+      }
+
+      // @ts-ignore
+      $x(selector)[0].click()
+    }, instagramSelectors.profile)
 
     let postUrls: Array<string> = []
 
     await this.context.waitForSelector('xpath/' + instagramSelectors.changeProfilePhoto)
-
     postUrls = await this.context.evaluate((selector) => {
 
       // @ts-ignore
@@ -301,7 +321,7 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
 
         return {
           // @ts-ignore
-          name: $x(selector.contentPoster)?.[0]?.innerHTML || '',
+          name: document.querySelector('header')?.textContent || '',
           // @ts-ignore
           caption: $x(selector.contentCaption)?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[2]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.innerHTML || '',
           likes: $x(selector.contentLikesCount)?.[0]?.textContent || '',

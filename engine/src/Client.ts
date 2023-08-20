@@ -23,7 +23,7 @@ class Client extends MyEventEmitter<ClientEvents> {
   pupPage: PupPage
   controller: InterfaceController
 
-  constructor(options?: DefaultOptionsIF) {
+  constructor(options: DefaultOptionsIF) {
     super();
 
     this.options = Util.mergeDefault(defaultOptions, options);

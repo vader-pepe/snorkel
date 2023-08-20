@@ -134,7 +134,6 @@ export const instagramSelectors = {
   )]]`,
   postsContainer: `//article//div//div//div[a[@role="link"][@tabindex="0"]]`,
   contentContainer: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]',
-  contentHeader: '//header//div//div//div//div//div//span//div//div//a',
   contentPoster: `//header//div//div//div//div//div//span//div//div//a`,
   contentCaption: `//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]`,
   contentLikesCount: `//section//span[@dir="auto"]//a//span[contains(

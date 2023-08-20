@@ -249,6 +249,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
       for (let i = 0; i < posts.length; i++) {
         temp.push({
+          // not a good way to get data
           name: posts[i][0]?.children?.[0]?.children?.[1]?.children?.[0]?.textContent || null,
           caption: posts[i][1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
           otherCaption: posts[i][2]?.children?.[0]?.children?.[4]?.textContent || null,
@@ -263,6 +264,19 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     return posts
+  }
+
+  async editPost(url: string) {
+    await this.context.bringToFront()
+    this.emit(STATE_CONSTANT, facebookState.LOADING)
+    const isLoggedIn = await this.isLoggedIn()
+    if (!isLoggedIn) {
+      throw new Error('Account not found!')
+    }
+
+    // https://www.facebook.com/100030460027249/posts/pfbid0rPMFqZbCd4nGSCSCoqDFjFu4DTp7egHy9dLjMT5oLmjSrmxQN5GPwiQscw1cYSrul/?app=fbl
+
+
   }
 
 }
