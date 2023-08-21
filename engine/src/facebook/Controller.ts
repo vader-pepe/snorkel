@@ -30,14 +30,6 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
   async createPostWithMedia(media: string, caption?: string) {
     await this.context.bringToFront()
-    if (this.context.url() !== 'https://m.facebook.com/') {
-      await Promise.all([
-        this.context.waitForNavigation({
-          waitUntil: 'domcontentloaded'
-        }),
-        this.context.goto('https://m.facebook.com/')
-      ])
-    }
     const imageRegex = /\.(jpe?g|png|gif|bmp)$/i
     const isImage = imageRegex.test(media)
     this.emit(STATE_CONSTANT, facebookState.LOADING)
@@ -79,14 +71,6 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
   async createPost(caption: string) {
     await this.context.bringToFront()
-    if (this.context.url() !== 'https://m.facebook.com/') {
-      await Promise.all([
-        this.context.waitForNavigation({
-          waitUntil: 'domcontentloaded'
-        }),
-        this.context.goto('https://m.facebook.com/')
-      ])
-    }
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     const isLoggedIn = await this.isLoggedIn()
     if (!isLoggedIn) {
@@ -242,6 +226,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
 
         // Include the last element if the target wasn't found
         if (elementsNotMeetingCondition.length) {
+          // @ts-ignore
           elementsNotMeetingCondition.push(elementsNotMeetingCondition[elementsNotMeetingCondition.length - 1].nextElementSibling);
         }
         return elementsNotMeetingCondition
@@ -250,11 +235,17 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       for (let i = 0; i < posts.length; i++) {
         temp.push({
           // not a good way to get data
+          // @ts-ignore
           name: posts[i][0]?.children?.[0]?.children?.[1]?.children?.[0]?.textContent || null,
+          // @ts-ignore
           caption: posts[i][1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
+          // @ts-ignore
           otherCaption: posts[i][2]?.children?.[0]?.children?.[4]?.textContent || null,
+          // @ts-ignore
           media: posts[i][2]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
+          // @ts-ignore
           likes: posts[i][4]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.textContent || 0,
+          // @ts-ignore
           comments: posts[i][4]?.children?.[1]?.children?.[0]?.children?.[0]?.textContent || 0,
         })
       }
