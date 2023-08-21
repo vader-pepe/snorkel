@@ -1,4 +1,6 @@
-import puppeteer, { Browser, Page } from "puppeteer-core";
+import { Browser, Page } from "puppeteer-core"
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth"
 import fs from "fs/promises"
 
 import { DefaultOptionsIF, defaultOptions } from "./constants/Constants";
@@ -10,7 +12,6 @@ import { InstagramController } from './instagram/Controller';
 import { TwitterController } from './twitter/Controller';
 import Util from "./utils/Utils";
 
-type PupBrowser = Browser | null
 export type PupPage = Page | null
 type Platforms = { facebook: FacebookController, instagram: InstagramController, twitter: TwitterController }
 type ClientEvents = {
@@ -19,7 +20,7 @@ type ClientEvents = {
 
 class Client extends MyEventEmitter<ClientEvents> {
   options: DefaultOptionsIF
-  pupBrowser: PupBrowser
+  pupBrowser: Browser
   pupPage: PupPage
   controller: InterfaceController
 
@@ -27,19 +28,20 @@ class Client extends MyEventEmitter<ClientEvents> {
     super();
 
     this.options = Util.mergeDefault(defaultOptions, options);
-    this.pupBrowser = null;
-    this.pupPage = null;
+    this.pupBrowser;
+    this.pupPage;
   }
 
   async initialize(): Promise<void> {
-    let browser: PupBrowser
-    let page: PupPage
+    let browser: Browser
+    let page: Page
 
     // to mitigate bug https://github.com/puppeteer/puppeteer/issues/10517
     await fs.unlink(`${this.options.puppeteer.userDataDir}/SingletonLock`).catch(() => { /* keep empty */ })
 
     const puppeteerOpts = this.options.puppeteer;
     const browserConnectOpts = this.options.connectOpts
+    puppeteer.use(StealthPlugin())
 
     if (browserConnectOpts && browserConnectOpts.browserWSEndpoint) {
       browser = await puppeteer.connect(browserConnectOpts);
