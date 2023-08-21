@@ -2,9 +2,9 @@ import { IPlatfroms } from "./InterfaceController";
 
 const config = {
   platforms: [
-    'instagram',
-    'facebook',
-    'twitter'
+    'https://www.instagram.com/',
+    'https://www.facebook.com/',
+    'https://twitter.com/'
   ] satisfies Array<IPlatfroms>
 };
 
