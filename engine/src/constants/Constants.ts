@@ -1,14 +1,10 @@
-import path from "path";
 import { ConnectOptions, PuppeteerLaunchOptions } from "puppeteer-core";
-
-const userDataDir = path.resolve('./userDataDir')
 
 export const defaultOptions: DefaultOptionsIF = {
   puppeteer: {
     headless: 'new',
     defaultViewport: null,
-    userDataDir,
-    protocolTimeout: 0,
+    protocolTimeout: 3000,
     executablePath: ''
   },
   webVersion: '2.2322.15',

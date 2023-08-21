@@ -2,13 +2,11 @@ import prompt from "prompt"
 import path from "path";
 
 import Client from "./Client";
-const userDataDir = path.resolve('./userDataDir')
 const storage = path.resolve('./src/storage')
 
 function main() {
   const client = new Client({
     puppeteer: {
-      userDataDir,
       executablePath: '/usr/bin/google-chrome-stable',
     }
   })

@@ -44,29 +44,27 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
     await this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
 
-    await this.context.waitForSelector(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
+    await this.context.type('xpath/' + facebookSelectors.captionTextarea, (caption || ''), { delay: 100 })
+    await this.context.click(facebookSelectors.newPhotoOrVideoPost)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.mediaInput)
+
     const [fileChooser] = await Promise.all([
-      this.context.waitForFileChooser({
-        timeout: 3000
-      }),
-      this.context.click(isImage ? 'xpath/' + facebookSelectors.mNewPhotosPost : 'xpath/' + facebookSelectors.mNewVideoPost)
+      this.context.waitForFileChooser(),
+      this.context.click('xpath/' + facebookSelectors.mediaInput)
     ])
 
     await fileChooser.accept([processedMedia]);
-    if (!!caption) {
-      await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
-      await this.context.click('xpath/' + facebookSelectors.captionSpawner)
-      await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
-      await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption, { delay: 100 })
-    }
-    await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
+    await sleep(1000)
+    await this.context.click(facebookSelectors.submitPostBtn)
     await sleep(3000)
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 60000 }).catch(() => {
+    await this.context.waitForSelector(facebookSelectors.postedToast, { timeout: 60000 }).catch(() => {
       throw new Error('Upload exceeded 60 seconds!')
     })
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
+    await this.context.reload().catch(() => {/* keep empty */ })
   }
 
   async createPost(caption: string) {
@@ -81,23 +79,21 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     await this.context.waitForSelector('xpath/' + facebookSelectors.whatsOnYourmind)
     await this.context.click('xpath/' + facebookSelectors.whatsOnYourmind)
 
-    await this.context.waitForSelector('xpath/' + facebookSelectors.captionSpawner)
-    await this.context.click('xpath/' + facebookSelectors.captionSpawner)
     await this.context.waitForSelector('xpath/' + facebookSelectors.captionTextarea)
     await this.context.type('xpath/' + facebookSelectors.captionTextarea, caption, { delay: 100 })
 
-    await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
-    await sleep(1500)
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast)
+    await this.context.click(facebookSelectors.submitPostBtn)
+    await sleep(1000)
+    await this.context.waitForSelector(facebookSelectors.postedToast)
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
-
+    await this.context.reload().catch(() => {/* keep empty */ })
   }
 
   async isLoggedIn() {
     let alreadyLoggedIn = false
 
-    await this.context.waitForSelector('xpath/' + facebookSelectors.mStatusFieldXpath).then(() => {
+    await this.context.waitForSelector('xpath/' + facebookSelectors.statusFieldXpath, { timeout: 30000 }).then(() => {
       alreadyLoggedIn = true
     }).catch(() => {
       // keep empty
@@ -151,7 +147,7 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       this.context.goto('https://www.facebook.com/profile.php'),
     ])
 
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postsHeader)
+    await this.context.waitForSelector('xpath/' + facebookSelectors.posts)
     let posts: Array<{
       name: string
       caption: string | null
@@ -178,80 +174,33 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
         }
         return results;
       }
+
+      const seeMore = Array.from($x(`//*[contains(text(),"See more")]`))
       // @ts-ignore
-      let elementsNotMeetingCondition = []
-      // @ts-ignore
-      let posts = []
-      let postsHeader = $x(selector.header)
-      let postsFooter = $x(selector.footer)
-      // @ts-ignore
-      function collectElementsUntilCondition(element, targetElement, condition, collectedElements = []) {
-        if (!element || element === targetElement) {
-          return collectedElements;
-        }
+      seeMore.map((post) => post.click())
 
-        if (!condition(element)) {
-          // @ts-ignore
-          collectedElements.push(element);
-        }
-
-        if (!collectedElements.length) {
-          // Store the first element that doesn't meet the condition
-          // @ts-ignore
-          collectedElements.push(element);
-        }
-
-        return collectElementsUntilCondition(element.nextElementSibling, targetElement, condition, collectedElements);
-      }
-
-      // Include the last element if the target wasn't found
-      if (elementsNotMeetingCondition.length) {
-        // @ts-ignore
-        elementsNotMeetingCondition.push(elementsNotMeetingCondition[elementsNotMeetingCondition.length - 1].nextElementSibling);
-      }
-
+      const postsContainer = Array.from($x(selector))
       // @ts-ignore
       let temp = []
-      // @ts-ignore
-      posts = postsHeader.map((header, index) => {
-        const elementsNotMeetingCondition = collectElementsUntilCondition(
-          header,
-          postsFooter[index],
-          // @ts-ignore
-          () => {
-            // Define your condition here
-            return
-          }
-        );
-
-        // Include the last element if the target wasn't found
-        if (elementsNotMeetingCondition.length) {
-          // @ts-ignore
-          elementsNotMeetingCondition.push(elementsNotMeetingCondition[elementsNotMeetingCondition.length - 1].nextElementSibling);
-        }
-        return elementsNotMeetingCondition
-      })
-
-      for (let i = 0; i < posts.length; i++) {
+      for (let i = 0; i < postsContainer.length; i++) {
+        // @ts-ignore
+        const media = postsContainer[i]?.querySelector(`video`)?.src || postsContainer[i]?.querySelector(`img[referrerpolicy="origin-when-cross-origin"]`)?.src || null
         temp.push({
-          // not a good way to get data
           // @ts-ignore
-          name: posts[i][0]?.children?.[0]?.children?.[1]?.children?.[0]?.textContent || null,
+          name: postsContainer[i]?.querySelector('h2').textContent || '',
           // @ts-ignore
-          caption: posts[i][1]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
+          caption: postsContainer[i]?.querySelector(`[data-ad-comet-preview="message"]`)?.querySelector(`span`)?.innerHTML || '',
           // @ts-ignore
-          otherCaption: posts[i][2]?.children?.[0]?.children?.[4]?.textContent || null,
+          otherCaption: postsContainer[i]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[7]?.children?.[0]?.children?.[0]?.children?.[2]?.children?.[0]?.children?.[0]?.children?.[1]?.children?.[0]?.innerHTML || '',
+          media,
           // @ts-ignore
-          media: posts[i][2]?.children?.[0]?.children?.[0]?.children?.[0]?.innerHTML || null,
+          likes: postsContainer[i]?.querySelector(`div[role="button"] > span[aria-hidden="true"]`)?.textContent || 0,
           // @ts-ignore
-          likes: posts[i][4]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.[1]?.textContent || 0,
-          // @ts-ignore
-          comments: posts[i][4]?.children?.[1]?.children?.[0]?.children?.[0]?.textContent || 0,
+          comments: postsContainer[i]?.querySelector(`div[role="button"] > span[dir="auto"]`)?.textContent || 0,
         })
       }
       return temp
-
-    }, { header: facebookSelectors.postsHeader, footer: facebookSelectors.postsFooter })
+    }, facebookSelectors.posts)
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     return posts
