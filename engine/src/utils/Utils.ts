@@ -1,5 +1,3 @@
-import ffmpeg from 'fluent-ffmpeg'
-
 type ObjectLiteral = { [key: string]: any };
 const has = (o: ObjectLiteral, k: string): boolean => Object.prototype.hasOwnProperty.call(o, k);
 
@@ -21,13 +19,6 @@ class Util {
     return given;
   }
 
-  /**
- * Configure ffmpeg path
- * @param {string} path
- */
-  static setFfmpegPath(path: string) {
-    ffmpeg.setFfmpegPath(path);
-  }
 
 }
 

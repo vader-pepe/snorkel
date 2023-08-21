@@ -1,6 +1,6 @@
 # Snorkel
 
-This project is a social media automation tool built with TypeScript (TS). It provides a set of features that allow users to automate their social media activities, such as posting updates, scheduling posts, and interacting with followers. This README provides an overview of the project, installation instructions, usage examples, and guidelines for contributing.Snorkel is a social media automation tool that allows to connect to multiple platforms in a single place. It provides a set of features that allow users to automate their social media activities, such as posting updates, scheduling posts, and interacting with followers. This README provides an overview of the project, installation instructions, usage examples, and guidelines for contributing.
+Snorkel is a social media automation tool that allows to connect to multiple platforms in a single place. It provides a set of features that allow users to automate their social media activities, such as posting updates, scheduling posts, and interacting with followers. This README provides an overview of the project, installation instructions, usage examples, and guidelines for contributing.
 
 ## Table of Contents
 
