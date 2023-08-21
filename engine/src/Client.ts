@@ -1,4 +1,6 @@
-import puppeteer, { Browser, Page } from "puppeteer-core";
+import { Browser, Page } from "puppeteer-core"
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth"
 import fs from "fs/promises"
 
 import { DefaultOptionsIF, defaultOptions } from "./constants/Constants";
@@ -10,8 +12,8 @@ import { InstagramController } from './instagram/Controller';
 import { TwitterController } from './twitter/Controller';
 import Util from "./utils/Utils";
 
-type PupBrowser = Browser | null
-export type PupPage = Page | null
+type PupBrowser = Browser
+export type PupPage = Page
 type Platforms = { facebook: FacebookController, instagram: InstagramController, twitter: TwitterController }
 type ClientEvents = {
   [K in EventValues]: (arg: Platforms) => void
@@ -27,8 +29,6 @@ class Client extends MyEventEmitter<ClientEvents> {
     super();
 
     this.options = Util.mergeDefault(defaultOptions, options);
-    this.pupBrowser = null;
-    this.pupPage = null;
   }
 
   async initialize(): Promise<void> {
@@ -40,6 +40,7 @@ class Client extends MyEventEmitter<ClientEvents> {
 
     const puppeteerOpts = this.options.puppeteer;
     const browserConnectOpts = this.options.connectOpts
+    puppeteer.use(StealthPlugin())
 
     if (browserConnectOpts && browserConnectOpts.browserWSEndpoint) {
       browser = await puppeteer.connect(browserConnectOpts);

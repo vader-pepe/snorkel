@@ -63,6 +63,9 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     await this.context.waitForSelector('xpath/' + instagramSelectors.postNextStep)
     await sleep(500)
     await this.context.click('xpath/' + instagramSelectors.okBtn).catch(() => {/* keep empty */ })
+    await this.context.waitForSelector('xpath/' + instagramSelectors.original)
+    await this.context.click('xpath/' + instagramSelectors.original)
+    await sleep(500)
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
     await this.context.click('xpath/' + instagramSelectors.postNextStep)
     if (!!caption) {

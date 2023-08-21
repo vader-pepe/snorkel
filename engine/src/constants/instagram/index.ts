@@ -144,7 +144,12 @@ export const instagramSelectors = {
   contentVid: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//video',
   ratios: `svg[aria-label="Select Crop"]`,
   // ratios.parentElement.parentElement ==> clickable
-  ratiosChoises: `//div[contains(text(),'Original')]`,
+  original: `//div[@role="button"][div[div[span[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'original'
+  )
+]]]]]`,
   // ratiosChoises.parentElement.parentElement.parentElement.parentElement.querySelectorAll('button') ==> the buttons
   filtersTab: `//span[contains(text(),'Filters')]`,
   // adjustmentsTab: `//span[contains(text(),'Adjustments')]`,
