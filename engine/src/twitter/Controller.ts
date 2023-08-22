@@ -255,4 +255,30 @@ export class TwitterController extends MyEventEmitter<TwitterEvents> {
     return posts
   }
 
+  async deletePost(url: string) {
+    await this.context.bringToFront()
+    this.emit(STATE_CONSTANT, State.LOADING)
+    const isLoggedIn = await this.isLoggedIn()
+    if (!isLoggedIn) {
+      throw new Error('Account not found!')
+    }
+
+    await Promise.all([
+      this.context.waitForNavigation(),
+      this.context.goto(url)
+    ])
+
+    await this.context.waitForSelector('xpath/' + `//div[@aria-haspopup="menu"][@aria-label="More"][@role="button"]`)
+    await this.context.click('xpath/' + `//div[@aria-haspopup="menu"][@aria-label="More"][@role="button"]`)
+    await sleep(1000)
+
+    await this.context.waitForSelector('xpath/' + `//div[@role="menuitem"]`)
+    await this.context.click('xpath/' + `//div[@role="menuitem"][div[div[span[text()="Delete"]]]]`)
+
+    await this.context.waitForSelector('xpath/' + `//div[div[span[span[text()="Delete"]]]]`)
+    await this.context.click('xpath/' + `//div[div[span[span[text()="Delete"]]]]`)
+    this.emit(STATE_CONSTANT, State.LOADING_DONE)
+
+  }
+
 }
