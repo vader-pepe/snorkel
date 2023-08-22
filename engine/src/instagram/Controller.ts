@@ -348,5 +348,33 @@ export class InstagramController extends MyEventEmitter<InstagramEvents> {
     return posts
   }
 
+  async deletePost(url: string) {
+    await this.context.bringToFront()
+    const isLoggedIn = await this.isLoggedIn()
+    if (!isLoggedIn) {
+      throw new Error('Account not found!')
+    }
+    this.emit(STATE_CONSTANT, instagramState.LOADING)
+    await Promise.all([
+      this.context.waitForNavigation(),
+      this.context.goto(url)
+    ])
+
+    await this.context.waitForSelector('xpath/' + instagramSelectors.postMenu)
+    await sleep(1000)
+    await this.context.click('xpath/' + instagramSelectors.postMenu)
+    await sleep(1000)
+
+    await this.context.waitForSelector('xpath/' + instagramSelectors.deleteBtn)
+    await sleep(1000)
+    await this.context.click('xpath/' + instagramSelectors.deleteBtn)
+    await sleep(1000)
+
+    await this.context.waitForSelector('xpath/' + instagramSelectors.deleteSure)
+    await sleep(1000)
+    await this.context.click('xpath/' + instagramSelectors.deleteBtn)
+    this.emit(STATE_CONSTANT, instagramState.LOADING_DONE)
+  }
+
 }
 

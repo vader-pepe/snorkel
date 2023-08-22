@@ -142,11 +142,27 @@ export const instagramSelectors = {
   )]`,
   contentImg: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//img',
   contentVid: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//video',
-  selectCrop: `//button[div[*[@aria-label[  contains(
+  selectCrop: `//button[div[*[@aria-label[contains(
     translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
     'select crop'
   )
 ]]]]`,
+  postMenu: `//div[@role="button"][div[div[*[@aria-label[contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'more options'
+  )]]]]]`,
+  deleteBtn: `//div[@role="dialog"]//button[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'delete'
+  )
+]]`,
+  deleteSure: `//span[text()[
+  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'are you sure'
+  )
+]]`,
   // ratios.parentElement.parentElement ==> clickable
   original: `//div[@role="button"][div[div[span[text()[
   contains(

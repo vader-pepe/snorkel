@@ -1,7 +1,7 @@
 {
-  "name": "nodejs-express-template",
+  "name": "snorkel",
   "version": "1.0.0",
-  "description": "Scalable and basic template for making Node.js apps by using express",
+  "description": "Social Media Automation!",
   "main": "index.ts",
   "scripts": {
     "dev": "nodemon ./src/index.ts",

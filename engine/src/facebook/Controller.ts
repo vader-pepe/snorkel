@@ -203,10 +203,11 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }, facebookSelectors.posts)
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
+    await this.context.goto('https://www.facebook.com/').catch(() => {/* keep empty */ })
     return posts
   }
 
-  async editPost(url: string) {
+  async deletePost(url: string) {
     await this.context.bringToFront()
     this.emit(STATE_CONSTANT, facebookState.LOADING)
     const isLoggedIn = await this.isLoggedIn()
@@ -214,8 +215,20 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
       throw new Error('Account not found!')
     }
 
-    // https://www.facebook.com/100030460027249/posts/pfbid0rPMFqZbCd4nGSCSCoqDFjFu4DTp7egHy9dLjMT5oLmjSrmxQN5GPwiQscw1cYSrul/?app=fbl
+    await Promise.all([
+      this.context.waitForNavigation(),
+      this.context.goto(url)
+    ])
 
+    await this.context.waitForSelector('xpath/' + '//div[@aria-haspopup="menu"][@aria-label="Actions for this post"]')
+    await this.context.click('xpath/' + '//div[@aria-haspopup="menu"][@aria-label="Actions for this post"]')
+
+    await this.context.waitForSelector('xpath/' + '//div[@role="menuitem"][div[div[div[span[text()="Delete post"]]]]]')
+    await this.context.click('xpath/' + '//div[@role="menuitem"][div[div[div[span[text()="Delete post"]]]]]')
+
+    await this.context.waitForSelector('xpath/' + '//div[@aria-label="Delete"]')
+    await this.context.click('xpath/' + '//div[@aria-label="Delete"]')
+    this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
 
   }
 
