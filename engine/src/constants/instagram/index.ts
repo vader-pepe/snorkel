@@ -142,7 +142,11 @@ export const instagramSelectors = {
   )]`,
   contentImg: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//img',
   contentVid: '//main//div//div[div[div[div[div[@role="button"][@aria-hidden]]]]]//video',
-  ratios: `svg[aria-label="Select Crop"]`,
+  selectCrop: `//button[div[*[@aria-label[  contains(
+    translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),
+    'select crop'
+  )
+]]]]`,
   // ratios.parentElement.parentElement ==> clickable
   original: `//div[@role="button"][div[div[span[text()[
   contains(

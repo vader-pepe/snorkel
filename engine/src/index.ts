@@ -48,6 +48,8 @@ function main() {
       // await twitter.login('YOUR USERNAME', 'YOUR PASSWORD')
     }
 
+    await instagram.createPost(`${storage}/test.jpg`, 'test image with snorkel')
+
   })
 }
 
