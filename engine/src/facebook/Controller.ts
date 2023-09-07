@@ -61,9 +61,6 @@ export class FacebookController extends MyEventEmitter<FacebookEvents> {
     }
     await this.context.click('xpath/' + facebookSelectors.submitPostBtn)
     await sleep(3000)
-    await this.context.waitForSelector('xpath/' + facebookSelectors.postedToast, { timeout: 60000 }).catch(() => {
-      throw new Error('Upload exceeded 60 seconds!')
-    })
 
     this.emit(STATE_CONSTANT, facebookState.LOADING_DONE)
     this.emit(STATE_CONSTANT, facebookState.POST_DONE)
